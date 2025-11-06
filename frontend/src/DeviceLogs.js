@@ -30,7 +30,7 @@ export default function DeviceLogs() {
         { key: 'app_version', label: 'Версия приложения' }
     ];
 
-    // Update unique values when logs data changes
+    // Обновление уникальных значений при изменении даты логов
     useEffect(() => {
         if (logs.length > 0) {
             const values = {};
@@ -75,7 +75,7 @@ export default function DeviceLogs() {
         });
     };
 
-    // Get unique values for each field from the current table data
+    // Получение уникальных значений для каждого поля из текущей таблицы
     const getUniqueValues = (key) => {
         const values = new Set();
         logs.forEach(log => {
@@ -86,7 +86,7 @@ export default function DeviceLogs() {
         return Array.from(values).sort();
     };
 
-    // Filter values based on search term
+    // Фильтрация значений по поисковому запросу
     const getFilteredValues = (key) => {
         const searchTerm = (searchTerms[key] || '').toLowerCase();
         return getUniqueValues(key).filter(value => 
@@ -106,7 +106,7 @@ export default function DeviceLogs() {
 
     // Функция для применения фильтров к данным
     const filterLogs = (logs, filters) => {
-        // If no active filters, return all logs
+        // Если нет активных фильтров - возврат всех логов
         const activeFilters = Object.entries(filters).filter(([_, values]) => values && values.length > 0);
         if (activeFilters.length === 0) return logs;
         
@@ -148,7 +148,6 @@ export default function DeviceLogs() {
                 )}
             </p>
 
-            {/* Панель фильтров */}
             <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
                 {fields.map(field => (
                     <div key={field.key} style={{ position: 'relative' }}>
@@ -189,7 +188,6 @@ export default function DeviceLogs() {
                                         Очистить
                                     </button>
                                 </div>
-                                {/* Search input for the filter */}
                                 <div style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
                                     <input
                                         type="text"
@@ -205,7 +203,6 @@ export default function DeviceLogs() {
                                         }}
                                     />
                                 </div>
-                                {/* Show only values from current table data */}
                                 {getFilteredValues(field.key).map(value => (
                                     <label key={value} style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', cursor: 'pointer' }}>
                                         <input

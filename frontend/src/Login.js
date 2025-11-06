@@ -9,15 +9,15 @@ export default function Login() {
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
-    // Проверяем, авторизован ли пользователь
+    // Проверка, авторизован ли пользователь
     useEffect(() => {
         const checkAuth = async () => {
             try {
                 await getCurrentUser();
-                // Если пользователь уже авторизован, перенаправляем на главную
+                // Если пользователь уже авторизован, перенаправляется на главную
                 navigate('/devices');
             } catch (err) {
-                // Если не авторизован, остаемся на странице входа
+                // Если не авторизован, остаётся на странице входа
                 setIsLoading(false);
             }
         };

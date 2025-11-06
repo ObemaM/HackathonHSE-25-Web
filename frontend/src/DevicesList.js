@@ -19,7 +19,7 @@ export default function DevicesList() {
     const [searchTerms, setSearchTerms] = useState({}); // Поисковые запросы для фильтров
     const navigate = useNavigate(); // Объект Для навигации по страницам сайта
 
-    // Update unique values when devices data changes
+    // Обновление уникальных значений при обновлении данных на устройствах
     useEffect(() => {
         if (devices.length > 0) {
             const values = {};
@@ -92,7 +92,7 @@ export default function DevicesList() {
         { key: 'device_code', label: 'Номер устройства' }
     ];
 
-    // Get unique values for each field from the current table data
+    // Получение уникальных значений для каждого поля текущей таблицы
     const getUniqueValues = (key) => {
         const values = new Set();
         devices.forEach(device => {
@@ -103,7 +103,7 @@ export default function DevicesList() {
         return Array.from(values).sort();
     };
 
-    // Filter values based on search term
+    // Фильтрация значений по поисковому запросу
     const getFilteredValues = (key) => {
         const searchTerm = (searchTerms[key] || '').toLowerCase();
         return getUniqueValues(key).filter(value => 
@@ -120,7 +120,7 @@ export default function DevicesList() {
 
     // Функция для применения фильтров к данным
     const filterDevices = (devices, filters) => {
-        // If no active filters, return all devices
+        // Если нет активных фильтров - возвращение всех устройств
         const activeFilters = Object.entries(filters).filter(([_, values]) => values && values.length > 0);
         if (activeFilters.length === 0) return devices;
         
@@ -191,7 +191,6 @@ export default function DevicesList() {
                                         Очистить
                                     </button>
                                 </div>
-                                {/* Search input for the filter */}
                                 <div style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
                                     <input
                                         type="text"
@@ -207,7 +206,6 @@ export default function DevicesList() {
                                         }}
                                     />
                                 </div>
-                                {/* Show only values from current table data */}
                                 {getFilteredValues(field.key).map(value => (
                                     <label key={value} style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', cursor: 'pointer' }}>
                                         <input
