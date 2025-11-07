@@ -148,76 +148,7 @@ export default function DeviceLogs() {
                 )}
             </p>
 
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-                {fields.map(field => (
-                    <div key={field.key} style={{ position: 'relative' }}>
-                        <button
-                            onClick={() => setOpenFilter(openFilter === field.key ? null : field.key)}
-                            style={{
-                                padding: '6px 12px',
-                                border: '1px solid #ccc',
-                                background: filters[field.key]?.length > 0 ? '#e0f0ff' : 'white',
-                                cursor: 'pointer',
-                                borderRadius: '4px'
-                            }}
-                        >
-                            {field.label} {filters[field.key]?.length > 0 ? `(${filters[field.key].length})` : ''}
-                        </button>
-
-                        {openFilter === field.key && (
-                            <div
-                                style={{
-                                    position: 'absolute',
-                                    top: '100%',
-                                    left: 0,
-                                    background: 'white',
-                                    border: '1px solid #ccc',
-                                    boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-                                    zIndex: 1000,
-                                    maxHeight: '200px',
-                                    overflowY: 'auto',
-                                    minWidth: '150px'
-                                }}
-                                onClick={e => e.stopPropagation()}
-                            >
-                                <div style={{ padding: '6px', borderBottom: '1px solid #eee' }}>
-                                    <button
-                                        onClick={() => clearFilter(field.key)}
-                                        style={{ fontSize: '12px', color: '#007bff', background: 'none', border: 'none', cursor: 'pointer' }}
-                                    >
-                                        Очистить
-                                    </button>
-                                </div>
-                                <div style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
-                                    <input
-                                        type="text"
-                                        placeholder={`Поиск ${field.label.toLowerCase()}...`}
-                                        value={searchTerms[field.key] || ''}
-                                        onChange={(e) => handleSearchChange(field.key, e.target.value)}
-                                        style={{
-                                            width: '100%',
-                                            padding: '4px 8px',
-                                            borderRadius: '4px',
-                                            border: '1px solid #ddd',
-                                            fontSize: '14px'
-                                        }}
-                                    />
-                                </div>
-                                {getFilteredValues(field.key).map(value => (
-                                    <label key={value} style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', cursor: 'pointer' }}>
-                                        <input
-                                            type="checkbox"
-                                            checked={filters[field.key]?.includes(value) || false}
-                                            onChange={() => toggleFilter(field.key, value)}
-                                        />
-                                        <span style={{ marginLeft: '8px' }}>{value || '—'}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                ))}
-            </div>
+            
 
             {/* Таблица логов */}
             <div style={{ background: 'white', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
@@ -225,24 +156,132 @@ export default function DeviceLogs() {
                     <table style={{ 
                         width: '100%', 
                         borderCollapse: 'collapse',
-                        minWidth: '800px'
+                        minWidth: '800px',
+                        textAlign: 'center'
                     }}>
                         <thead>
+                            {/* 🔹 Строка фильтров */}
+                            <tr style={{ 
+                                backgroundColor: '#f1f3f5',
+                                textAlign: 'center',
+                                verticalAlign: 'middle',
+                                borderBottom: '1px solid #e9ecef'
+                                
+                            }}>
+                                {fields.map(field => (
+                                <th 
+                                    key={`filter-${field.key}`} 
+                                    style={{ 
+                                    textAlign: 'center',
+                                    verticalAlign: 'middle',
+                                    padding: '0.5rem',
+                                    borderRight: '1px solid #e9ecef'
+                                    }}
+                                >
+                                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                                    <button
+                                        onClick={() => setOpenFilter(openFilter === field.key ? null : field.key)}
+                                        style={{
+                                        padding: '6px 12px',
+                                        border: '1px solid #ced4da',
+                                        background: filters[field.key]?.length > 0 ? '#e0f0ff' : '#f8f9fa',
+                                        cursor: 'pointer',
+                                        borderRadius: '4px',
+                                        fontSize: '0.875rem',
+                                        color: filters[field.key]?.length > 0 ? '#1976d2' : '#6c757d',
+                                        transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        {filters[field.key]?.length > 0 ? `(${filters[field.key].length})` : 'Фильтр'}
+                                    </button>
+
+                                    {openFilter === field.key && (
+                                        <div
+                                        style={{
+                                            position: 'absolute',
+                                            top: '100%',
+                                            left: 0,
+                                            background: 'white',
+                                            border: '1px solid #ced4da',
+                                            boxShadow: '0 3px 8px rgba(0,0,0,0.15)',
+                                            zIndex: 1000,
+                                            maxHeight: '200px',
+                                            overflowY: 'auto',
+                                            minWidth: '160px',
+                                            borderRadius: '4px',
+                                            marginTop: '4px'
+                                        }}
+                                        onClick={e => e.stopPropagation()}
+                                        >
+                                        <div style={{ padding: '6px', borderBottom: '1px solid #eee' }}>
+                                            <button
+                                            onClick={() => clearFilter(field.key)}
+                                            style={{ fontSize: '12px', color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer' }}
+                                            >
+                                            Очистить
+                                            </button>
+                                        </div>
+                                        <div style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
+                                            <input
+                                            type="text"
+                                            placeholder={`Поиск...`}
+                                            value={searchTerms[field.key] || ''}
+                                            onChange={(e) => handleSearchChange(field.key, e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                padding: '4px 8px',
+                                                borderRadius: '4px',
+                                                border: '1px solid #ddd',
+                                                fontSize: '13px'
+                                            }}
+                                            />
+                                        </div>
+                                        {getFilteredValues(field.key).map(value => (
+                                            <label key={value} style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', cursor: 'pointer' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={filters[field.key]?.includes(value) || false}
+                                                onChange={() => toggleFilter(field.key, value)}
+                                            />
+                                            <span style={{ marginLeft: '8px', fontSize: '0.9rem' }}>{value || '—'}</span>
+                                            </label>
+                                        ))}
+                                        </div>
+                                    )}
+                                    </div>
+                                </th>
+                                ))}
+
+                                {/* Пустая ячейка под "Дата действия" */}
+                                <th style={{ textAlign: 'center', padding: '0.5rem' }}></th>
+                            </tr>
+
+                            {/* 🔹 Строка заголовков */}
                             <tr style={{ 
                                 backgroundColor: '#f8f9fa',
                                 borderBottom: '2px solid #dee2e6'
                             }}>
                                 {fields.map(f => (
-                                    <th key={f.key} style={{ 
-                                        padding: '1rem',
-                                        textAlign: ['app_version'].includes(f.key) ? 'center' : 'left',
-                                        borderRight: '1px solid #dee2e6'
-                                    }}>
-                                        {f.label}
-                                    </th>
+                                <th key={f.key} style={{ 
+                                    textAlign: 'center',
+                                    verticalAlign: 'middle',
+                                    padding: '0.75rem 1rem',
+                                    borderRight: '1px solid #dee2e6',
+                                    fontWeight: '600',
+                                    color: '#495057'
+                                }}>
+                                    {f.label}
+                                </th>
                                 ))}
-                                <th style={{ padding: '1rem', textAlign: 'center' }}>Дата действия</th>
+                                <th style={{ 
+                                textAlign: 'center', 
+                                verticalAlign: 'middle',
+                                padding: '0.75rem 1rem',
+                                fontWeight: '600',
+                                color: '#495057'
+                                }}>Дата действия</th>
                             </tr>
+
                         </thead>
                         <tbody>
                             {filteredLogs.length === 0 ? (
@@ -262,7 +301,8 @@ export default function DeviceLogs() {
                                     >
                                         <td style={{ 
                                             padding: '1rem',
-                                            textAlign: 'left',
+                                            textAlign: 'center',
+                                            verticalAlign: 'middle',
                                             borderRight: '1px solid #eee',
                                             color: '#333',
                                             fontWeight: '500'
@@ -272,6 +312,8 @@ export default function DeviceLogs() {
                                         <td style={{ 
                                             padding: '1rem',
                                             borderRight: '1px solid #eee',
+                                            textAlign: 'center',
+                                            verticalAlign: 'middle',
                                             color: '#666'
                                         }}>
                                             {log.smp_code || '—'}
@@ -279,6 +321,8 @@ export default function DeviceLogs() {
                                         <td style={{ 
                                             padding: '1rem',
                                             borderRight: '1px solid #eee',
+                                            textAlign: 'center',
+                                            verticalAlign: 'middle',
                                             color: '#666'
                                         }}>
                                             {log.team_number || '—'}
@@ -286,6 +330,8 @@ export default function DeviceLogs() {
                                         <td style={{ 
                                             padding: '1rem',
                                             borderRight: '1px solid #eee',
+                                            textAlign: 'center',
+                                            verticalAlign: 'middle',
                                             color: '#666'
                                         }}>
                                             {log.action_text || '—'}
@@ -293,6 +339,8 @@ export default function DeviceLogs() {
                                         <td style={{ 
                                             padding: '1rem',
                                             borderRight: '1px solid #eee',
+                                            textAlign: 'center',
+                                            verticalAlign: 'middle',
                                             color: '#666',
                                             textAlign: 'center'
                                         }}>
@@ -300,7 +348,8 @@ export default function DeviceLogs() {
                                         </td>
                                         <td style={{ 
                                             padding: '1rem',
-                                            textAlign: 'center'
+                                            textAlign: 'center',
+                                            verticalAlign: 'middle'
                                         }}>
                                             {formatDate(log.datetime)}
                                         </td>

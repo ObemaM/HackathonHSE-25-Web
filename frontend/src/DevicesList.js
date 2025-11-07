@@ -132,7 +132,7 @@ export default function DevicesList() {
         });
     };
     
-    // Применяем фильтры к данным
+    // Применение фильтров к данным
     const filteredDevices = filterDevices(devices, filters);
 
     return (
@@ -147,97 +147,118 @@ export default function DevicesList() {
                 )}
             </p>
 
-            {/* Панель фильтров над таблицей */}
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-                {fields.map(field => (
-                    <div key={field.key} style={{ position: 'relative' }}>
-                        {/* Кнопка фильтра — подсвечивается, если фильтр активен */}
-                        <button
-                            onClick={() => setOpenFilter(openFilter === field.key ? null : field.key)}
-                            style={{
-                                padding: '6px 12px',
-                                border: '1px solid #ccc',
-                                background: filters[field.key]?.length > 0 ? '#e0f0ff' : 'white',
-                                cursor: 'pointer',
-                                borderRadius: '4px'
-                            }}
-                        >
-                            {field.label} {filters[field.key]?.length > 0 ? `(${filters[field.key].length})` : ''}
-                        </button>
-
-                        {/* Выпадающий список с чекбоксами */}
-                        {openFilter === field.key && (
-                            <div
-                                style={{
-                                    position: 'absolute',
-                                    top: '100%',
-                                    left: 0,
-                                    background: 'white',
-                                    border: '1px solid #ccc',
-                                    boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-                                    zIndex: 1000,
-                                    maxHeight: '200px',
-                                    overflowY: 'auto',
-                                    minWidth: '150px'
-                                }}
-                                // Останавливка всплытия клика, чтобы не закрылась панель
-                                onClick={e => e.stopPropagation()}
-                            >
-                                <div style={{ padding: '6px', borderBottom: '1px solid #eee' }}>
-                                    <button
-                                        onClick={() => clearFilter(field.key)}
-                                        style={{ fontSize: '12px', color: '#007bff', background: 'none', border: 'none', cursor: 'pointer' }}
-                                    >
-                                        Очистить
-                                    </button>
-                                </div>
-                                <div style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
-                                    <input
-                                        type="text"
-                                        placeholder={`Поиск ${field.label.toLowerCase()}...`}
-                                        value={searchTerms[field.key] || ''}
-                                        onChange={(e) => handleSearchChange(field.key, e.target.value)}
-                                        style={{
-                                            width: '100%',
-                                            padding: '4px 8px',
-                                            borderRadius: '4px',
-                                            border: '1px solid #ddd',
-                                            fontSize: '14px'
-                                        }}
-                                    />
-                                </div>
-                                {getFilteredValues(field.key).map(value => (
-                                    <label key={value} style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', cursor: 'pointer' }}>
-                                        <input
-                                            type="checkbox"
-                                            checked={filters[field.key]?.includes(value) || false}
-                                            onChange={() => toggleFilter(field.key, value)}
-                                        />
-                                        <span style={{ marginLeft: '8px' }}>{value || '—'}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                ))}
-            </div>
-
             {/* Таблица устройств */}
             <div style={{ background: 'white', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ 
                         width: '100%', 
                         borderCollapse: 'collapse',
-                        minWidth: '800px'
+                        minWidth: '800px',
+                        textAlign: 'center'
                     }}>
                         <thead>
+                            <tr style={{ 
+                            backgroundColor: '#f1f3f5',
+                            borderBottom: '1px solid #e9ecef'
+                        }}>
+                            {fields.map(field => (
+                                <th 
+                                    key={`filter-${field.key}`} 
+                                    style={{
+                                        borderRight: '1px solid #e9ecef',
+                                        padding: '0.5rem',
+                                        textAlign: 'center',
+                                        verticalAlign: 'middle'
+                                    }}
+                                >
+                                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                                        <button
+                                            onClick={() => setOpenFilter(openFilter === field.key ? null : field.key)}
+                                            style={{
+                                                padding: '6px 12px',
+                                                border: '1px solid #ced4da',
+                                                background: filters[field.key]?.length > 0 ? '#e0f0ff' : '#f8f9fa',
+                                                cursor: 'pointer',
+                                                borderRadius: '4px',
+                                                fontSize: '0.875rem',
+                                                color: filters[field.key]?.length > 0 ? '#1976d2' : '#6c757d',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            {filters[field.key]?.length > 0 ? `(${filters[field.key].length})` : 'Фильтр'}
+                                        </button>
+
+                                        {/* Выпадающий список */}
+                                        {openFilter === field.key && (
+                                            <div
+                                                style={{
+                                                    position: 'absolute',
+                                                    top: '100%',
+                                                    left: 0,
+                                                    background: 'white',
+                                                    border: '1px solid #ced4da',
+                                                    boxShadow: '0 3px 8px rgba(0,0,0,0.15)',
+                                                    zIndex: 1000,
+                                                    maxHeight: '200px',
+                                                    overflowY: 'auto',
+                                                    minWidth: '160px',
+                                                    borderRadius: '4px',
+                                                    marginTop: '4px'
+                                                }}
+                                                onClick={e => e.stopPropagation()}
+                                            >
+                                                <div style={{ padding: '6px', borderBottom: '1px solid #eee' }}>
+                                                    <button
+                                                        onClick={() => clearFilter(field.key)}
+                                                        style={{ fontSize: '12px', color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer' }}
+                                                    >
+                                                        Очистить
+                                                    </button>
+                                                </div>
+                                                <div style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
+                                                    <input
+                                                        type="text"
+                                                        placeholder={`Поиск...`}
+                                                        value={searchTerms[field.key] || ''}
+                                                        onChange={(e) => handleSearchChange(field.key, e.target.value)}
+                                                        style={{
+                                                            width: '100%',
+                                                            padding: '4px 8px',
+                                                            borderRadius: '4px',
+                                                            border: '1px solid #ddd',
+                                                            fontSize: '13px'
+                                                        }}
+                                                    />
+                                                </div>
+                                                {getFilteredValues(field.key).map(value => (
+                                                    <label key={value} style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', cursor: 'pointer' }}>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={filters[field.key]?.includes(value) || false}
+                                                            onChange={() => toggleFilter(field.key, value)}
+                                                        />
+                                                        <span style={{ marginLeft: '8px', fontSize: '0.9rem' }}>{value || '—'}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </th>
+                            ))}
+
+                            {/* Пустые ячейки под "Дата действия" и "Действия" */}
+                            <th style={{ textAlign: 'center', padding: '0.5rem', borderRight: '1px solid #e9ecef' }}></th>
+                            <th style={{ textAlign: 'center', padding: '0.5rem' }}></th>
+                        </tr>
+
                             <tr style={{ 
                                 backgroundColor: '#f8f9fa',
                                 borderBottom: '2px solid #dee2e6'
                             }}>
                                 {fields.map(f => (
                                     <th key={f.key} style={{ 
-                                        textAlign: ['app_version', 'device_code', 'datetime'].includes(f.key) ? 'center' : 'left',
+                                        textAlign: 'center',
+                                        verticalAlign: 'middle',
                                         borderRight: '1px solid #dee2e6'
                                     }}>
                                         {f.label}
@@ -261,7 +282,8 @@ export default function DevicesList() {
                                 >
                                     <td style={{ 
                                         padding: '1rem',
-                                        textAlign: 'left',
+                                        textAlign: 'center',
+                                        verticalAlign: 'middle',
                                         borderRight: '1px solid #eee',
                                         color: '#333',
                                         fontWeight: '500'
@@ -293,13 +315,15 @@ export default function DevicesList() {
                                         padding: '1rem',
                                         borderRight: '1px solid #eee',
                                         color: '#666',
-                                        textAlign: 'center'
+                                        textAlign: 'center',
+                                        verticalAlign: 'middle'
                                     }}>
                                         {d.app_version || '—'}
                                     </td>
                                     <td style={{ 
                                         padding: '1rem',
                                         textAlign: 'center',
+                                        verticalAlign: 'middle',
                                         borderRight: '1px solid #eee',
                                         color: '#333',
                                         fontWeight: '500'
@@ -309,13 +333,15 @@ export default function DevicesList() {
                                     <td style={{ 
                                         padding: '1rem',
                                         borderRight: '1px solid #eee',
-                                        textAlign: 'center'
+                                        textAlign: 'center',
+                                        verticalAlign: 'middle'
                                     }}>
                                         {formatDate(d.datetime)}
                                     </td>
                                     <td style={{ 
                                         padding: '1rem',
-                                        textAlign: 'center'
+                                        textAlign: 'center',
+                                        verticalAlign: 'middle'
                                     }}>
                                         <button 
                                             onClick={() => navigate(`/device/${d.device_code}`)}
