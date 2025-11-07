@@ -1,0 +1,11 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #B0C4DE;
+  min-height: 100vh;
+}
+
+/* Чтобы фон не "обрывался", если контента мало: */
+html {
+  height: 100%;
+}
