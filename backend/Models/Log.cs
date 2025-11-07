@@ -24,6 +24,11 @@ namespace HackathonBackend.Models
         [MaxLength(50)]
         public string DeviceCode { get; set; } = string.Empty;
 
+        [Column("team_number")]
+        [Required]
+        [MaxLength(50)]
+        public string TeamNumber { get; set; } = string.Empty;
+
         [Key]
         [Column("datetime")]
         public DateTime Datetime { get; set; }

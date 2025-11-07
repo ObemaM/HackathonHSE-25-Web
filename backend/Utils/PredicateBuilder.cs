@@ -2,25 +2,16 @@ using System.Linq.Expressions;
 
 namespace HackathonBackend.Utils
 {
-    /// <summary>
-    /// PredicateBuilder для динамического построения LINQ выражений
-    /// Используется для создания сложных OR/AND условий в запросах
-    /// </summary>
-    public static class PredicateBuilder
+    // Работа c LINQ, используется для создания сложных OR/AND условий в запросах
+    public static class LINQBuilder
     {
-        /// <summary>
-        /// Создает предикат, который всегда возвращает true
-        /// </summary>
+        // Предикат True для всех
         public static Expression<Func<T, bool>> True<T>() => param => true;
 
-        /// <summary>
-        /// Создает предикат, который всегда возвращает false
-        /// </summary>
+        // Предикат False для всех
         public static Expression<Func<T, bool>> False<T>() => param => false;
 
-        /// <summary>
-        /// Объединяет два предиката с помощью OR
-        /// </summary>
+        // Объединяет два предиката с помощью OR
         public static Expression<Func<T, bool>> Or<T>(
             this Expression<Func<T, bool>> expr1,
             Expression<Func<T, bool>> expr2)
@@ -37,9 +28,7 @@ namespace HackathonBackend.Utils
                 Expression.OrElse(left!, right!), parameter);
         }
 
-        /// <summary>
-        /// Объединяет два предиката с помощью AND
-        /// </summary>
+        // Объединяет два предиката с помощью AND
         public static Expression<Func<T, bool>> And<T>(
             this Expression<Func<T, bool>> expr1,
             Expression<Func<T, bool>> expr2)
@@ -56,24 +45,22 @@ namespace HackathonBackend.Utils
                 Expression.AndAlso(left!, right!), parameter);
         }
 
-        /// <summary>
-        /// Visitor для замены параметров в выражениях
-        /// </summary>
+        // Visitor для замены параметров в выражениях
         private class ReplaceExpressionVisitor : ExpressionVisitor
         {
-            private readonly Expression _oldValue;
-            private readonly Expression _newValue;
+            private readonly Expression oldValue;
+            private readonly Expression newValue;
 
             public ReplaceExpressionVisitor(Expression oldValue, Expression newValue)
             {
-                _oldValue = oldValue;
-                _newValue = newValue;
+                this.oldValue = oldValue;
+                this.newValue = newValue;
             }
 
             public override Expression? Visit(Expression? node)
             {
-                if (node == _oldValue)
-                    return _newValue;
+                if (node == oldValue)
+                    return newValue;
                 return base.Visit(node);
             }
         }

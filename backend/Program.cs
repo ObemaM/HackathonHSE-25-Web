@@ -7,8 +7,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Конфигурация подключения к базе данных
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Если переменные окружения заданы, используем их
-var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
+/* 
+    Если переменные окружения заданы, используем их, если нет - используем значения по умолчанию.
+    При работе с бд, можно вводить в консоль вручную: $env:DB_HOST="smth", а убрать можно Remove-Item Env:DB_HOST
+    ?? возвращает правый операнд, если левый является null
+*/
+var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost"; 
 var dbPort = Environment.GetEnvironmentVariable("DB_PORT") ?? "5434";
 var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "HackathonHSE-25";
 var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "postgres";

@@ -11,11 +11,11 @@ namespace HackathonBackend.Controllers
     [Route("api/[controller]")]
     public class SMPController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext tocontext;
 
         public SMPController(ApplicationDbContext context)
         {
-            _context = context;
+            tocontext = context;
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace HackathonBackend.Controllers
         {
             try
             {
-                var smps = await _context.SMPs.ToListAsync();
+                var smps = await tocontext.SMPs.ToListAsync();
                 return Ok(smps);
             }
             catch (Exception ex)

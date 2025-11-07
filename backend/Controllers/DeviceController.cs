@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using HackathonBackend.Data;
 using HackathonBackend.Models;
 using HackathonBackend.Utils;
-using static HackathonBackend.Utils.PredicateBuilder;
+using static HackathonBackend.Utils.LINQBuilder;
 
 namespace HackathonBackend.Controllers
 {

@@ -4,7 +4,7 @@ using HackathonBackend.Data;
 using HackathonBackend.Models;
 using HackathonBackend.Models.DTOs;
 using HackathonBackend.Utils;
-using static HackathonBackend.Utils.PredicateBuilder;
+using static HackathonBackend.Utils.LINQBuilder;
 
 namespace HackathonBackend.Controllers
 {
@@ -112,7 +112,7 @@ namespace HackathonBackend.Controllers
                     .ToListAsync();
 
                 // Get unique team numbers
-                var teamNumbers = await _context.Devices
+                var teamNumbers = await _context.Logs
                     .Where(d => accessibleDeviceCodes.Contains(d.DeviceCode))
                     .Where(d => !string.IsNullOrEmpty(d.TeamNumber))
                     .Select(d => d.TeamNumber)
@@ -251,7 +251,7 @@ namespace HackathonBackend.Controllers
                         Datetime = log.Datetime,
                         RegionCode = device?.RegionCode ?? "-",
                         SMPCode = device?.SmpCode ?? "-",
-                        TeamNumber = device?.TeamNumber ?? "-",
+                        TeamNumber = log?.TeamNumber ?? "-",
                         ActionText = actionText ?? "Неизвестное действие"
                     });
                 }
@@ -325,7 +325,7 @@ namespace HackathonBackend.Controllers
                                Datetime = log.Datetime,
                                RegionCode = d != null ? d.RegionCode : "-",
                                SMPCode = d != null ? d.SmpCode : "-",
-                               TeamNumber = d != null ? d.TeamNumber : "-",
+                               TeamNumber = log.TeamNumber ?? "-",
                                ActionText = a != null ? a.ActionText : "Неизвестное действие"
                            };
 

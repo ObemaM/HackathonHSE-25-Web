@@ -2,32 +2,24 @@ using Microsoft.AspNetCore.Http;
 
 namespace HackathonBackend.Utils
 {
-    /// <summary>
-    /// SessionExtensions предоставляет вспомогательные методы для работы с сессией
-    /// </summary>
+    // Сессия пользователя
     public static class SessionExtensions
     {
         private const string UserSessionKey = "user";
 
-        /// <summary>
-        /// Устанавливает сессию пользователя
-        /// </summary>
+        // Устанавливает логин текущего пользователя в сессию
         public static void SetUserSession(this ISession session, string login)
         {
             session.SetString(UserSessionKey, login);
         }
 
-        /// <summary>
-        /// Получает логин текущего пользователя из сессии
-        /// </summary>
+        // Получает логин текущего пользователя из сессии
         public static string? GetCurrentUser(this ISession session)
         {
             return session.GetString(UserSessionKey);
         }
 
-        /// <summary>
-        /// Удаляет сессию пользователя
-        /// </summary>
+        // Удаляет сессию пользователя
         public static void ClearUserSession(this ISession session)
         {
             session.Remove(UserSessionKey);

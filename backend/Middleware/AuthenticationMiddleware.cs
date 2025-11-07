@@ -9,11 +9,11 @@ namespace HackathonBackend.Middleware
     /// </summary>
     public class AuthenticationMiddleware
     {
-        private readonly RequestDelegate _next;
+        private readonly RequestDelegate tonext;
 
         public AuthenticationMiddleware(RequestDelegate next)
         {
-            _next = next;
+            tonext = next;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -30,7 +30,7 @@ namespace HackathonBackend.Middleware
                 return;
             }
 
-            await _next(context);
+            await tonext(context);
         }
     }
 

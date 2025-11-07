@@ -11,22 +11,20 @@ namespace HackathonBackend.Controllers
     [Route("api/[controller]")]
     public class ActionsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext tocontext;
 
         public ActionsController(ApplicationDbContext context)
         {
-            _context = context;
+            tocontext = context;
         }
 
-        /// <summary>
-        /// GetAllActions возвращает все действия
-        /// </summary>
+        // GetAllActions возвращает все действия
         [HttpGet]
         public async Task<IActionResult> GetAllActions()
         {
             try
             {
-                var actions = await _context.Actions.ToListAsync();
+                var actions = await tocontext.Actions.ToListAsync();
                 return Ok(actions);
             }
             catch (Exception ex)

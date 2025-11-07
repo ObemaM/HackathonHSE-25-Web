@@ -47,7 +47,7 @@ namespace HackathonBackend.Data
                 .HasDatabaseName("idx_devices_region_smp");
 
             // Для поиска по командам
-            modelBuilder.Entity<Device>()
+            modelBuilder.Entity<Log>()
                 .HasIndex(d => d.TeamNumber)
                 .HasDatabaseName("idx_devices_team");
 
