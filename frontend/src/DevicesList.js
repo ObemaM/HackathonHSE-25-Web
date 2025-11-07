@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchLatestLogs, fetchUniqueValues } from './api';
+import './index.css';
 
 function formatDate(dateString) {
     // Принимает дату
@@ -137,6 +138,12 @@ export default function DevicesList() {
 
     return (
         <div style={{ padding: '20px' }}>
+            <div style={{
+                minHeight: '48px', 
+                display: 'flex',
+                alignItems: 'flex-start'
+            }}></div> {/* Резервирование места под кнопку на DeviceLogs - 
+            чтобы не "прыгала" таблица */}
             <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', color: '#333' }}>Последние логи устройств</h2>
             <p style={{ color: '#666', marginBottom: '1.5rem' }}>
                 Всего устройств: <strong>{devices.length}</strong>
@@ -148,7 +155,7 @@ export default function DevicesList() {
             </p>
 
             {/* Таблица устройств */}
-            <div style={{ background: 'white', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+            <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ 
                         width: '100%', 
@@ -158,7 +165,7 @@ export default function DevicesList() {
                     }}>
                         <thead>
                             <tr style={{ 
-                            backgroundColor: '#f1f3f5',
+                            background: '#f0f2f8',
                             borderBottom: '1px solid #e9ecef'
                         }}>
                             {fields.map(field => (
@@ -181,7 +188,7 @@ export default function DevicesList() {
                                                 cursor: 'pointer',
                                                 borderRadius: '4px',
                                                 fontSize: '0.875rem',
-                                                color: filters[field.key]?.length > 0 ? '#1976d2' : '#6c757d',
+                                                color: filters[field.key]?.length > 0 ? '#372F85' : '#6c757d',
                                                 transition: 'all 0.2s'
                                             }}
                                         >
@@ -252,8 +259,8 @@ export default function DevicesList() {
                         </tr>
 
                             <tr style={{ 
-                                backgroundColor: '#f8f9fa',
-                                borderBottom: '2px solid #dee2e6'
+                                backgroundColor: '#FFFFFF',
+                                borderBottom: '2px solid #372F85'
                             }}>
                                 {fields.map(f => (
                                     <th key={f.key} style={{ 
@@ -347,7 +354,7 @@ export default function DevicesList() {
                                             onClick={() => navigate(`/device/${d.device_code}`)}
                                             style={{
                                                 padding: '0.4rem 1rem',
-                                                backgroundColor: '#007bff',
+                                                backgroundColor: '#2D266C',
                                                 color: 'white',
                                                 border: 'none',
                                                 borderRadius: '4px',
@@ -355,7 +362,7 @@ export default function DevicesList() {
                                                 fontSize: '0.9rem',
                                                 transition: 'all 0.2s',
                                                 ':hover': {
-                                                    backgroundColor: '#0056b3',
+                                                    backgroundColor: '#2D266C',
                                                     transform: 'translateY(-1px)'
                                                 }
                                             }}

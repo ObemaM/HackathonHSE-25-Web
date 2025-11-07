@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'; // useState для хранения состояния (как в Login.js), useEffect - выполняет код при загрузке компонента
 import { useNavigate, useParams } from 'react-router-dom'; // для перехода на другую страницу
 import { fetchDeviceLogs } from './api'; // функции из api.js
+import './index.css';
 
 
 function formatDate(dateString) {
@@ -127,7 +128,7 @@ export default function DeviceLogs() {
                 onClick={() => navigate('/devices')}
                 style={{
                     padding: '0.5rem 1rem',
-                    backgroundColor: '#6c757d',
+                    backgroundColor: '#2D266C',
                     color: 'white',
                     border: 'none',
                     borderRadius: '4px',
@@ -151,7 +152,7 @@ export default function DeviceLogs() {
             
 
             {/* Таблица логов */}
-            <div style={{ background: 'white', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+            <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ 
                         width: '100%', 
@@ -160,9 +161,9 @@ export default function DeviceLogs() {
                         textAlign: 'center'
                     }}>
                         <thead>
-                            {/* 🔹 Строка фильтров */}
+                            {/*Строка фильтров */}
                             <tr style={{ 
-                                backgroundColor: '#f1f3f5',
+                                background: '#f0f2f8',
                                 textAlign: 'center',
                                 verticalAlign: 'middle',
                                 borderBottom: '1px solid #e9ecef'
@@ -188,7 +189,7 @@ export default function DeviceLogs() {
                                         cursor: 'pointer',
                                         borderRadius: '4px',
                                         fontSize: '0.875rem',
-                                        color: filters[field.key]?.length > 0 ? '#1976d2' : '#6c757d',
+                                        color: filters[field.key]?.length > 0 ? '#372F85' : '#6c757d',
                                         transition: 'all 0.2s'
                                         }}
                                     >
@@ -256,10 +257,10 @@ export default function DeviceLogs() {
                                 <th style={{ textAlign: 'center', padding: '0.5rem' }}></th>
                             </tr>
 
-                            {/* 🔹 Строка заголовков */}
+                            {/*Строка заголовков */}
                             <tr style={{ 
-                                backgroundColor: '#f8f9fa',
-                                borderBottom: '2px solid #dee2e6'
+                                backgroundColor: '#FFFFFF',
+                                borderBottom: '2px solid #372F85'
                             }}>
                                 {fields.map(f => (
                                 <th key={f.key} style={{ 
