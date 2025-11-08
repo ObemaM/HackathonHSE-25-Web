@@ -1,4 +1,23 @@
 services:
+  db:
+    image: postgres:16
+    container_name: hackathon_db
+    environment:
+      - POSTGRES_DB=HackathonHSE-25
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=paralledp
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - kopimelik
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ./backend
@@ -12,9 +31,12 @@ services:
       - DB_PASSWORD=paralledp
       - ASPNETCORE_URLS=http://+:8080
     networks:
-      - app-network
+      - kopimelik
     expose:
       - "8080"
+    depends_on:
+      db:
+        condition: service_healthy
 
   frontend:
     build:
@@ -24,7 +46,7 @@ services:
     depends_on:
       - backend
     networks:
-      - app-network
+      - kopimelik
     expose:
       - "80"
 
@@ -40,9 +62,11 @@ services:
       - backend
       - frontend
     networks:
-      - app-network
+      - kopimelik
 
 networks:
-  app-network:
-    external: true
-    name: hackathonhse-25-web_app-network
+  kopimelik:
+    driver: bridge
+
+volumes:
+  postgres_data:

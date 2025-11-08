@@ -12,11 +12,11 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     При работе с бд, можно вводить в консоль вручную: $env:DB_HOST="smth", а убрать можно Remove-Item Env:DB_HOST
     ?? возвращает правый операнд, если левый является null
 */
-var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost"; 
-var dbPort = Environment.GetEnvironmentVariable("DB_PORT") ?? "5434";
+var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "db"; 
+var dbPort = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
 var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "HackathonHSE-25";
 var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "postgres";
-var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "040506";
+var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "paralledp";
 
 // Формируем строку подключения
 connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword};SSL Mode=Disable";
@@ -54,6 +54,15 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials()
+              .WithExposedHeaders("Content-Length");
+    });
+    
+    // Отдельная политика для мобильных устройств (без ограничений по origin)
+    options.AddPolicy("MobilePolicy", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader()
               .WithExposedHeaders("Content-Length");
     });
 });
@@ -117,6 +126,19 @@ app.MapGet("/api/test", () => Results.Json(new
     status = "success"
 }));
 
+// Применяем CORS политику для мобильных устройств
+app.MapWhen(
+    context => context.Request.Path.StartsWithSegments("/api/mobile"),
+    appBuilder =>
+    {
+        appBuilder.UseCors("MobilePolicy");
+        appBuilder.UseRouting();
+        appBuilder.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllers();
+        });
+    });
+
 // Публичные маршруты (без аутентификации)
 app.MapControllers();
 
@@ -125,7 +147,8 @@ app.MapControllers();
 app.MapWhen(
     context => context.Request.Path.StartsWithSegments("/api") &&
                !context.Request.Path.StartsWithSegments("/api/login") &&
-               !context.Request.Path.StartsWithSegments("/api/test"),
+               !context.Request.Path.StartsWithSegments("/api/test") &&
+               !context.Request.Path.StartsWithSegments("/api/mobile"),
     appBuilder =>
     {
         appBuilder.UseAuthenticationMiddleware();

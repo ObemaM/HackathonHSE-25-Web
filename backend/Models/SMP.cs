@@ -21,5 +21,6 @@ namespace HackathonBackend.Models
         [MaxLength(50)]
         [JsonPropertyName("smp_code")]
         public string SmpCode { get; set; } = string.Empty;
+
     }
 }

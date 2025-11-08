@@ -19,13 +19,7 @@ namespace HackathonBackend.Models
         [MaxLength(50)]
         public string SmpCode { get; set; } = string.Empty;
 
-        // [Column("team_number")]
-        // [Required]
-        // [MaxLength(50)]
-        // public string TeamNumber { get; set; } = string.Empty;
-
         [Column("created_at")]
-        [Required]
         public DateTime CreatedAt { get; set; }
 
         [Key]

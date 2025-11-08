@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8080/api'; // Адрес бэка, куда отправится HTTP-запрос (пока что локальный адрес Ярика)
+const API_BASE = '/api'; // Адрес бэка, куда отправится HTTP-запрос
 
 // Функция для выполнения запросов с авторизацией
 async function fetchWithAuth(url, options = {}) {
