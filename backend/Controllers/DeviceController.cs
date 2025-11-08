@@ -7,47 +7,36 @@ using static HackathonBackend.Utils.LINQBuilder;
 
 namespace HackathonBackend.Controllers
 {
-    /// <summary>
-    /// DeviceController обрабатывает запросы, связанные с устройствами
-    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class DevicesController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext tocontext;
 
         public DevicesController(ApplicationDbContext context)
         {
-            _context = context;
+            tocontext = context;
         }
 
-        /// <summary>
-        /// Применяет фильтры администратора к запросу устройств
-        /// </summary>
-        private IQueryable<Device> ApplyAdminFilters(IQueryable<Device> query)
+        private IQueryable<Device> ApplyAdminFilters(IQueryable<Device> query) // Фильтры для админов
         {
-            // Get current admin
-            var login = HttpContext.Session.GetCurrentUser();
+            var login = HttpContext.Session.GetCurrentUser(); 
             if (string.IsNullOrEmpty(login))
             {
-                // If not logged in, return no results
-                return query.Where(d => false);
+                return query.Where(d => false); // Пустой список, если не авторизирован
             }
 
-            // Get admin permissions - материализуем список
-            var permissions = _context.AdminSMPs
+            var permissions = tocontext.AdminSMPs // Получаем права доступа админа (по региону и смп)
                 .Where(a => a.Login == login)
                 .Select(p => new { p.RegionCode, p.SmpCode })
                 .ToList();
 
             if (permissions.Count == 0)
             {
-                // If no specific permissions, return empty result
-                return query.Where(d => false);
+                return query.Where(d => false); // Пустой список, если нет прав доступа
             }
 
-            // Создаем OR условия для каждой пары регион-СМП
-            var predicate = False<Device>();
+            var predicate = False<Device>(); // Создаем OR условия для каждой пары регион-СМП
             foreach (var perm in permissions)
             {
                 var regionCode = perm.RegionCode;
@@ -58,31 +47,24 @@ namespace HackathonBackend.Controllers
             return query.Where(predicate);
         }
 
-        /// <summary>
-        /// GetAllDevices возвращает все устройства, доступные текущему администратору
-        /// </summary>
-        [HttpGet]
+        [HttpGet] // Возвращает все устройства, доступные текущему админу (на основе его региона и смп)
         public async Task<IActionResult> GetAllDevices([FromQuery] string? region, [FromQuery] string? smp)
         {
             try
             {
-                IQueryable<Device> query = _context.Devices;
+                IQueryable<Device> query = tocontext.Devices;
 
-                // Применяем фильтры администратора
-                query = ApplyAdminFilters(query);
+                query = ApplyAdminFilters(query); // Применяем фильтры администратора
 
-                // Если указаны дополнительные параметры фильтрации, применяем их поверх прав доступа
-                if (!string.IsNullOrEmpty(region))
+                if (!string.IsNullOrEmpty(region)) // Если указаны дополнительные параметры фильтрации, применяем их поверх прав доступа
                 {
                     if (!string.IsNullOrEmpty(smp))
                     {
-                        // Используем составной индекс idx_devices_region_smp
-                        query = query.Where(d => d.RegionCode == region && d.SmpCode == smp);
+                        query = query.Where(d => d.RegionCode == region && d.SmpCode == smp); // Составной индекс idx_devices_region_smp
                     }
                     else
                     {
-                        // Используем первую часть составного индекса
-                        query = query.Where(d => d.RegionCode == region);
+                        query = query.Where(d => d.RegionCode == region); // Используем первую часть составного индекса
                     }
                 }
 

@@ -8,26 +8,20 @@ using System.Globalization;
 
 namespace HackathonBackend.Controllers
 {
-    /// <summary>
-    /// MobileController обрабатывает запросы с мобильных устройств
-    /// </summary>
     [ApiController]
-    [Route("api/mobile")]
+    [Route("api/mobile")] // Все запросы с мобильных устройств
     public class MobileController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly ILogger<MobileController> _logger;
+        private readonly ApplicationDbContext tocontext;
+        private readonly ILogger<MobileController> tologger;
 
         public MobileController(ApplicationDbContext context, ILogger<MobileController> logger)
         {
-            _context = context;
-            _logger = logger;
+            tocontext = context;
+            tologger = logger;
         }
 
-        /// <summary>
-        /// Добавляет лог с мобильного устройства
-        /// </summary>
-        [HttpPost("log")]
+        [HttpPost("log")] // Добавляем лог с мобильного устройства
         public async Task<IActionResult> AddLog([FromBody] MobileLogRequest request)
         {
             if (!ModelState.IsValid)
@@ -37,24 +31,21 @@ namespace HackathonBackend.Controllers
 
             try
             {
-                // 1. Проверяем/создаем СМП
-                var smp = await _context.SMPs
+                var smp = await tocontext.SMPs // Проверяем и создаем СМП
                     .FirstOrDefaultAsync(s => s.RegionCode == request.RegionCode && s.SmpCode == request.SmpCode);
                 
-                if (smp == null)
+                if (smp == null) // Если нет - создаем (и сохраняем в БД)
                 {
                     smp = new SMP
                     {
                         RegionCode = request.RegionCode,
                         SmpCode = request.SmpCode
                     };
-                    _context.SMPs.Add(smp);
-                    await _context.SaveChangesAsync();
-                    _logger.LogInformation($"Создан новый СМП: {request.RegionCode}/{request.SmpCode}");
+                    tocontext.SMPs.Add(smp);
+                    await tocontext.SaveChangesAsync();
                 }
 
-                // 2. Проверяем/создаем устройство
-                var device = await _context.Devices
+                var device = await tocontext.Devices // Проверяем и создаем новое устройство
                     .FirstOrDefaultAsync(d => d.DeviceCode == request.DeviceCode);
                 
                 if (device == null)
@@ -66,21 +57,23 @@ namespace HackathonBackend.Controllers
                         SmpCode = request.SmpCode,
                         CreatedAt = DateTime.UtcNow
                     };
-                    _context.Devices.Add(device);
-                    await _context.SaveChangesAsync();
-                    _logger.LogInformation($"Создано новое устройство: {request.DeviceCode}");
-                }
-                else if (device.RegionCode != request.RegionCode || device.SmpCode != request.SmpCode)
-                {
-                    // Обновляем регион и СМП устройства если они изменились
-                    device.RegionCode = request.RegionCode;
-                    device.SmpCode = request.SmpCode;
-                    await _context.SaveChangesAsync();
-                    _logger.LogInformation($"Обновлены данные устройства: {request.DeviceCode}");
+                    tocontext.Devices.Add(device);
+                    await tocontext.SaveChangesAsync();
                 }
 
-                // 3. Проверяем/создаем действие
-                var action = await _context.Actions
+                else if (device.RegionCode != request.RegionCode || device.SmpCode != request.SmpCode) // Обновляем регион и СМП устройства если они изменились
+                {
+                    device.RegionCode = request.RegionCode;
+                    device.SmpCode = request.SmpCode;
+
+                    var logsToUpdate = await tocontext.Logs // Обновляем логи устройства, если почистили кэш на устройстве
+                        .Where(l => l.DeviceCode == device.DeviceCode)
+                        .ToListAsync();
+
+                    await tocontext.SaveChangesAsync();
+                }
+
+                var action = await tocontext.Actions // Проверяем и создаем действие
                     .FirstOrDefaultAsync(a => a.ActionCode == request.ActionCode && a.AppVersion == request.AppVersion);
                 
                 if (action == null)
@@ -91,13 +84,11 @@ namespace HackathonBackend.Controllers
                         AppVersion = request.AppVersion,
                         ActionText = request.ActionText ?? $"Действие {request.ActionCode}"
                     };
-                    _context.Actions.Add(action);
-                    await _context.SaveChangesAsync();
-                    _logger.LogInformation($"Создано новое действие: {request.ActionCode} v{request.AppVersion}");
+                    tocontext.Actions.Add(action);
+                    await tocontext.SaveChangesAsync();
                 }
 
-                // 4. Создаем лог
-                var datetime = request.Datetime ?? DateTime.UtcNow;
+                var datetime = request.Datetime ?? DateTime.UtcNow; // Создаем лог, если его нет
                 var log = new Log
                 {
                     ActionCode = request.ActionCode,
@@ -107,10 +98,8 @@ namespace HackathonBackend.Controllers
                     Datetime = datetime
                 };
 
-                _context.Logs.Add(log);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation($"Добавлен лог: {request.DeviceCode} - {request.ActionCode} в {datetime}");
+                tocontext.Logs.Add(log);
+                await tocontext.SaveChangesAsync();
 
                 return Ok(new
                 {
@@ -126,16 +115,12 @@ namespace HackathonBackend.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Ошибка при добавлении лога: {ex.Message}");
+                tologger.LogError($"Ошибка при добавлении лога: {ex.Message}");
                 return StatusCode(500, new { error = $"Ошибка при добавлении лога: {ex.Message}" });
             }
         }
 
-        /// <summary>
-        /// Добавляет пакет логов с мобильного устройства. Поддерживает два формата тела запроса:
-        /// 1) Объект: { "logs": [ {..}, {..} ] }
-        /// 2) Массив: [ {..}, {..} ]
-        /// </summary>
+        // Добавляет пакет логов с телефона и тут идеи обработка
         [HttpPost("logs/batch")]
         public async Task<IActionResult> AddLogsBatch([FromBody] JsonElement body)
         {
@@ -143,30 +128,12 @@ namespace HackathonBackend.Controllers
 
             try
             {
-                if (body.ValueKind == JsonValueKind.Object)
+                if (body.ValueKind != JsonValueKind.Array)
                 {
-                    if (body.TryGetProperty("logs", out var logsProp) && logsProp.ValueKind == JsonValueKind.Array)
-                    {
-                        foreach (var el in logsProp.EnumerateArray()) elements.Add(el);
-                    }
-                    else
-                    {
-                        return BadRequest(new { error = "Ожидалось поле 'logs' с массивом логов" });
-                    }
-                }
-                else if (body.ValueKind == JsonValueKind.Array)
-                {
-                    foreach (var el in body.EnumerateArray()) elements.Add(el);
-                }
-                else
-                {
-                    return BadRequest(new { error = "Ожидался объект с 'logs' или массив логов" });
+                    return BadRequest(new { error = "Ожидался массив логов [ {..}, {..} ]" });
                 }
 
-                if (elements.Count == 0)
-                {
-                    return BadRequest(new { error = "Нет логов для добавления" });
-                }
+                foreach (var el in body.EnumerateArray()) elements.Add(el);
 
                 var results = new List<object>();
                 var successCount = 0;
@@ -176,7 +143,7 @@ namespace HackathonBackend.Controllers
                 {
                     try
                     {
-                        // Извлекаем поля вручную, чтобы лояльно парсить дату
+                        // Извлекаем поля вручную
                         string regionCode = el.TryGetProperty("region_code", out var rc) ? rc.GetString() ?? string.Empty : string.Empty;
                         string smpCode = el.TryGetProperty("smp_code", out var sc) ? sc.GetString() ?? string.Empty : string.Empty;
                         string deviceCode = el.TryGetProperty("device_code", out var dc) ? dc.GetString() ?? string.Empty : string.Empty;
@@ -190,9 +157,8 @@ namespace HackathonBackend.Controllers
                         {
                             if (dtProp.ValueKind == JsonValueKind.String)
                             {
-                                var dtStr = dtProp.GetString();
-                                // Пытаемся распарсить ISO или формат "yyyy-MM-dd HH:mm:ss.ffffff"
-                                if (!string.IsNullOrWhiteSpace(dtStr))
+                                var dtStr = dtProp.GetString(); // Пытаемся распарсить дату
+                                if (!string.IsNullOrWhiteSpace(dtStr)) 
                                 {
                                     if (!DateTime.TryParse(dtStr, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out datetime))
                                     {
@@ -204,24 +170,23 @@ namespace HackathonBackend.Controllers
                                     }
                                 }
                             }
+
                             else if (dtProp.ValueKind == JsonValueKind.Number && dtProp.TryGetInt64(out var unixMs))
                             {
                                 datetime = DateTimeOffset.FromUnixTimeMilliseconds(unixMs).UtcDateTime;
                             }
                         }
 
-                        // Проверяем/создаем СМП
-                        var smp = await _context.SMPs
+                        var smp = await tocontext.SMPs // Проверяем СМП
                             .FirstOrDefaultAsync(s => s.RegionCode == regionCode && s.SmpCode == smpCode);
                         if (smp == null)
                         {
                             smp = new SMP { RegionCode = regionCode, SmpCode = smpCode };
-                            _context.SMPs.Add(smp);
+                            tocontext.SMPs.Add(smp);
                         }
 
-                        // Проверяем/создаем устройство
-                        var device = await _context.Devices.FirstOrDefaultAsync(d => d.DeviceCode == deviceCode);
-                        if (device == null)
+                        // Проверяем устройство
+                        var device = await tocontext.Devices.FirstOrDefaultAsync(d => d.DeviceCode == deviceCode);
                         {
                             device = new Device
                             {
@@ -230,24 +195,13 @@ namespace HackathonBackend.Controllers
                                 SmpCode = smpCode,
                                 CreatedAt = DateTime.UtcNow
                             };
-                            _context.Devices.Add(device);
+                            tocontext.Devices.Add(device);
                         }
 
-                        // Проверяем/создаем действие
-                        var action = await _context.Actions.FirstOrDefaultAsync(a => a.ActionCode == actionCode && a.AppVersion == appVersion);
-                        if (action == null)
-                        {
-                            action = new Models.Action
-                            {
-                                ActionCode = actionCode,
-                                AppVersion = appVersion,
-                                ActionText = actionText ?? $"Действие {actionCode}"
-                            };
-                            _context.Actions.Add(action);
-                        }
+                        // Проверяем действие
+                        var action = await tocontext.Actions.FirstOrDefaultAsync(a => a.ActionCode == actionCode && a.AppVersion == appVersion);
 
-                        // Создаем лог
-                        var log = new Log
+                        var log = new Log // Создаем лог
                         {
                             ActionCode = actionCode,
                             AppVersion = appVersion,
@@ -256,8 +210,8 @@ namespace HackathonBackend.Controllers
                             Datetime = datetime
                         };
 
-                        _context.Logs.Add(log);
-                        await _context.SaveChangesAsync();
+                        tocontext.Logs.Add(log);
+                        await tocontext.SaveChangesAsync();
 
                         successCount++;
                         results.Add(new { success = true, device_code = deviceCode, action_code = actionCode });
@@ -265,7 +219,7 @@ namespace HackathonBackend.Controllers
                     catch (Exception ex)
                     {
                         failCount++;
-                        _logger.LogError($"Ошибка при добавлении лога: {ex.Message}");
+                        tologger.LogError($"Ошибка при добавлении лога: {ex.Message}");
                         results.Add(new { success = false, error = ex.Message });
                     }
                 }
@@ -279,15 +233,12 @@ namespace HackathonBackend.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Ошибка обработки тела запроса: {ex.Message}");
+                tologger.LogError($"Ошибка обработки тела запроса: {ex.Message}");
                 return BadRequest(new { error = $"Неверный формат запроса: {ex.Message}" });
             }
         }
 
-        /// <summary>
-        /// Тестовый endpoint для проверки связи
-        /// </summary>
-        [HttpGet("test")]
+        [HttpGet("test")] // Тестовый, для Дениса
         public IActionResult Test()
         {
             return Ok(new

@@ -80,9 +80,6 @@ export default function DevicesList() {
         });
     };
 
-    if (loading && devices.length === 0) return <div style={{ padding: '20px', textAlign: 'center', marginTop: '2rem' }}>Загрузка данных...</div>;
-    if (error) return <div style={{ color: '#dc3545', padding: '20px', background: '#fff8f8', borderRadius: '4px', margin: '1rem 0' }}>Ошибка загрузки: {error}</div>;
-
     // Описание полей таблицы и их названий для фильтрации
     const fields = [
         { key: 'region_code', label: 'Регион' },
@@ -155,7 +152,7 @@ export default function DevicesList() {
             </p>
 
             {/* Таблица устройств */}
-            <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', overflow: 'visible'}}>
+            <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', overflow: 'visible', position: 'relative'}}>
                 <div style={{ overflowX: 'auto', overflow: 'visible' }}>
                     <table style={{ 
                         width: '100%', 
@@ -279,105 +276,48 @@ export default function DevicesList() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredDevices.map((d, index) => ( // Перебор всех элементов массива устройств и генерация строк таблицы для них
-                                <tr 
-                                    key={index}
-                                    style={{
-                                        borderBottom: '1px solid #eee',
-                                        transition: 'background-color 0.2s',
-                                        ':hover': {
-                                            backgroundColor: '#f8f9fa'
-                                        }
-                                    }}
-                                >
-                                    <td style={{ 
-                                        padding: '1rem',
-                                        textAlign: 'center',
-                                        verticalAlign: 'middle',
-                                        borderRight: '1px solid #eee',
-                                        color: '#333',
-                                        fontWeight: '500'
-                                    }}>
-                                        {d.region_code || '-'}
-                                    </td>
-                                    <td style={{ 
-                                        padding: '1rem',
-                                        borderRight: '1px solid #eee',
-                                        color: '#666'
-                                    }}>
-                                        {d.smp_code || '-'}
-                                    </td>
-                                    <td style={{ 
-                                        padding: '1rem',
-                                        borderRight: '1px solid #eee',
-                                        color: '#666'
-                                    }}>
-                                        {d.team_number || '-'}
-                                    </td>
-                                    <td style={{ 
-                                        padding: '1rem',
-                                        borderRight: '1px solid #eee',
-                                        color: '#666'
-                                    }}>
-                                        {d.action_text || '—'}
-                                    </td>
-                                    <td style={{ 
-                                        padding: '1rem',
-                                        borderRight: '1px solid #eee',
-                                        color: '#666',
-                                        textAlign: 'center',
-                                        verticalAlign: 'middle'
-                                    }}>
-                                        {d.app_version || '—'}
-                                    </td>
-                                    <td style={{ 
-                                        padding: '1rem',
-                                        textAlign: 'center',
-                                        verticalAlign: 'middle',
-                                        borderRight: '1px solid #eee',
-                                        color: '#333',
-                                        fontWeight: '500'
-                                    }}>
-                                        {d.device_code || '—'}
-                                    </td>
-                                    <td style={{ 
-                                        padding: '1rem',
-                                        borderRight: '1px solid #eee',
-                                        textAlign: 'center',
-                                        verticalAlign: 'middle'
-                                    }}>
-                                        {formatDate(d.datetime)}
-                                    </td>
-                                    <td style={{ 
-                                        padding: '1rem',
-                                        textAlign: 'center',
-                                        verticalAlign: 'middle'
-                                    }}>
-                                        <button 
-                                            onClick={() => navigate(`/device/${d.device_code}`)}
-                                            style={{
-                                                padding: '0.4rem 1rem',
-                                                backgroundColor: '#2D266C',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '4px',
-                                                cursor: 'pointer',
-                                                fontSize: '0.9rem',
-                                                transition: 'all 0.2s',
-                                                ':hover': {
-                                                    backgroundColor: '#2D266C',
-                                                    transform: 'translateY(-1px)'
-                                                }
-                                            }}
-                                        >
-                                            Подробнее
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
+                          {filteredDevices.length === 0 ? (
+                            <tr>
+                              <td colSpan={8} style={{ padding: '2rem', textAlign: 'center', color: '#6c757d' }}>
+                                {loading ? 'Загрузка...' : error ? `Ошибка: ${error}` : 'Нет данных'}
+                              </td>
+                            </tr>
+                          ) : (
+                            filteredDevices.map((d, index) => (
+                              <tr key={index} style={{ borderBottom: '1px solid #eee' }}>
+                                <td style={{ padding: '1rem', textAlign: 'center', borderRight: '1px solid #eee' }}>{d.region_code || '-'}</td>
+                                <td style={{ padding: '1rem', borderRight: '1px solid #eee' }}>{d.smp_code || '-'}</td>
+                                <td style={{ padding: '1rem', borderRight: '1px solid #eee' }}>{d.team_number || '-'}</td>
+                                <td style={{ padding: '1rem', borderRight: '1px solid #eee' }}>{d.action_text || '—'}</td>
+                                <td style={{ padding: '1rem', textAlign: 'center', borderRight: '1px solid #eee' }}>{d.app_version || '—'}</td>
+                                <td style={{ padding: '1rem', textAlign: 'center', borderRight: '1px solid #eee' }}>{d.device_code || '—'}</td>
+                                <td style={{ padding: '1rem', textAlign: 'center', borderRight: '1px solid #eee' }}>{formatDate(d.datetime)}</td>
+                                <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                  <button 
+                                    onClick={() => navigate(`/device/${d.device_code}`)}
+                                    style={{ padding: '0.4rem 1rem', backgroundColor: '#2D266C', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                  >
+                                    Подробнее
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
                         </tbody>
                     </table>
                 </div>
+                {/* Благодаря этому блоку не торчит линия-разделитель строк табЫлицы в последней ячейке */}
+                <div style={{
+                    position: 'absolute',
+                    bottom: '-14px',
+                    left: 0,
+                    right: 0,
+                    height: '25px',
+                    background: 'white',
+                    borderBottomLeftRadius: '12px',
+                    borderBottomRightRadius: '12px',
+                    zIndex: 1
+                }} />
             </div>
 
             {/* Прозрачный оверлей для закрытия выпадающих панелей при клике вне */}

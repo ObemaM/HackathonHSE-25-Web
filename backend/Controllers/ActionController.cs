@@ -4,11 +4,8 @@ using HackathonBackend.Data;
 
 namespace HackathonBackend.Controllers
 {
-    /// <summary>
-    /// ActionController обрабатывает запросы, связанные с действиями
-    /// </summary>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/[controller]")] // ActionController обрабатывает запросы действий
     public class ActionsController : ControllerBase
     {
         private readonly ApplicationDbContext tocontext;
@@ -17,9 +14,8 @@ namespace HackathonBackend.Controllers
         {
             tocontext = context;
         }
-
-        // GetAllActions возвращает все действия
-        [HttpGet]
+        
+        [HttpGet] // GetAllActions возвращает все действия
         public async Task<IActionResult> GetAllActions()
         {
             try

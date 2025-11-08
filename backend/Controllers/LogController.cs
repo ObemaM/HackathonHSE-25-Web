@@ -8,38 +8,30 @@ using static HackathonBackend.Utils.LINQBuilder;
 
 namespace HackathonBackend.Controllers
 {
-    /// <summary>
-    /// LogController обрабатывает запросы, связанные с логами
-    /// </summary>
     [ApiController]
-    [Route("api/[controller]")]
-    public class LogsController : ControllerBase
+    [Route("api/[controller]")] // Обработка всех контроллеров связанных с логами
+    public class LogsController : ControllerBase // Для обработки логов
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext tocontext;
 
         public LogsController(ApplicationDbContext context)
         {
-            _context = context;
+            tocontext = context;
         }
 
-        /// <summary>
-        /// Получает список кодов устройств, доступных администратору
-        /// </summary>
-        private List<string> GetAccessibleDeviceCodes(string login)
+        private List<string> GetAccessibleDeviceCodes(string login) // Список кодов устройств, доступных админу
         {
-            // Получаем разрешения и материализуем их
-            var permissions = _context.AdminSMPs
+            var permissions = tocontext.AdminSMPs // Получаем права доступа админа (по региону и смп)
                 .Where(a => a.Login == login)
                 .Select(p => new { p.RegionCode, p.SmpCode })
                 .ToList();
 
-            if (permissions.Count == 0)
+            if (permissions.Count == 0) // Если нет прав доступа
             {
-                return new List<string>();
+                return new List<string>(); // Возвращаем пустой список (возвращаемый метод)
             }
 
-            // Создаем OR условия для каждой пары регион-СМП
-            var predicate = False<Device>();
+            var predicate = False<Device>(); // Создаем OR условия для каждой пары регион-СМП
             foreach (var perm in permissions)
             {
                 var regionCode = perm.RegionCode;
@@ -47,7 +39,7 @@ namespace HackathonBackend.Controllers
                 predicate = predicate.Or(d => d.RegionCode == regionCode && d.SmpCode == smpCode);
             }
 
-            var deviceCodes = _context.Devices
+            var deviceCodes = tocontext.Devices
                 .Where(predicate)
                 .Select(d => d.DeviceCode)
                 .ToList();
@@ -55,10 +47,7 @@ namespace HackathonBackend.Controllers
             return deviceCodes;
         }
 
-        /// <summary>
-        /// Применяет фильтры администратора к запросу логов
-        /// </summary>
-        private IQueryable<Log> ApplyAdminFilters(IQueryable<Log> query)
+        private IQueryable<Log> ApplyAdminFilters(IQueryable<Log> query) // Применяет фильтры к запросу логов
         {
             var login = HttpContext.Session.GetCurrentUser();
             if (string.IsNullOrEmpty(login))
@@ -75,10 +64,7 @@ namespace HackathonBackend.Controllers
             return query.Where(l => accessibleDeviceCodes.Contains(l.DeviceCode));
         }
 
-        /// <summary>
-        /// GetUniqueValues returns unique values for filtering
-        /// </summary>
-        [HttpGet("unique-values")]
+        [HttpGet("unique-values")] // Возвращает уникальные значения для фильтров
         public async Task<IActionResult> GetUniqueValues()
         {
             var login = HttpContext.Session.GetCurrentUser();
@@ -89,52 +75,47 @@ namespace HackathonBackend.Controllers
 
             try
             {
-                var accessibleDeviceCodes = GetAccessibleDeviceCodes(login);
+                var accessibleDeviceCodes = GetAccessibleDeviceCodes(login); // Получаем доступные устройства
                 if (accessibleDeviceCodes.Count == 0)
                 {
-                    return Ok(new { });
+                    return Ok(new { }); // Если нет доступных устройств, возвращаем пустой объект
                 }
 
-                // Get unique region codes
-                var regions = await _context.Devices
+                var regions = await tocontext.Devices // Уникальные коды регионов
                     .Where(d => accessibleDeviceCodes.Contains(d.DeviceCode))
                     .Where(d => !string.IsNullOrEmpty(d.RegionCode))
                     .Select(d => d.RegionCode)
                     .Distinct()
                     .ToListAsync();
 
-                // Get unique SMP codes
-                var smpCodes = await _context.Devices
+                var smpCodes = await tocontext.Devices // Уникальные коды СМП
                     .Where(d => accessibleDeviceCodes.Contains(d.DeviceCode))
                     .Where(d => !string.IsNullOrEmpty(d.SmpCode))
                     .Select(d => d.SmpCode)
                     .Distinct()
                     .ToListAsync();
 
-                // Get unique team numbers
-                var teamNumbers = await _context.Logs
+                var teamNumbers = await tocontext.Logs // Уникальные номера команд
                     .Where(d => accessibleDeviceCodes.Contains(d.DeviceCode))
                     .Where(d => !string.IsNullOrEmpty(d.TeamNumber))
                     .Select(d => d.TeamNumber)
                     .Distinct()
                     .ToListAsync();
 
-                // Get unique app versions
-                var appVersions = await _context.Logs
+                var appVersions = await tocontext.Logs // Уникальные версии приложения
                     .Where(l => accessibleDeviceCodes.Contains(l.DeviceCode))
                     .Where(l => !string.IsNullOrEmpty(l.AppVersion))
                     .Select(l => l.AppVersion)
                     .Distinct()
                     .ToListAsync();
 
-                // Get unique action texts
-                var actionTexts = await _context.Actions
+                var actionTexts = await tocontext.Actions // Уникальные тексты действий
                     .Where(a => !string.IsNullOrEmpty(a.ActionText))
                     .Select(a => a.ActionText)
                     .Distinct()
                     .ToListAsync();
 
-                return Ok(new
+                return Ok(new // Возвращаем объект с уникальными значениями
                 {
                     region_code = regions,
                     smp_code = smpCodes,
@@ -149,18 +130,15 @@ namespace HackathonBackend.Controllers
             }
         }
 
-        /// <summary>
-        /// GetAllLogs возвращает все логи, доступные текущему администратору
-        /// </summary>
-        [HttpGet]
+        [HttpGet] // Логи, которые доступны текущему админу
         public async Task<IActionResult> GetAllLogs()
         {
             try
             {
-                var query = _context.Logs.OrderByDescending(l => l.Datetime);
-                var filteredQuery = ApplyAdminFilters(query);
-                var logs = await filteredQuery.ToListAsync();
-                return Ok(logs);
+                var query = tocontext.Logs.OrderByDescending(l => l.Datetime); // Сортируем логи по дате (по убыванию)
+                var filteredQuery = ApplyAdminFilters(query); // Применяем фильтры
+                var logs = await filteredQuery.ToListAsync(); // Получаем логи
+                return Ok(logs); // Возвращаем логи
             }
             catch (Exception ex)
             {
@@ -168,10 +146,7 @@ namespace HackathonBackend.Controllers
             }
         }
 
-        /// <summary>
-        /// GetLatestDeviceLogs возвращает последний лог для каждого устройства, доступного текущему администратору
-        /// </summary>
-        [HttpGet("latest")]
+        [HttpGet("latest")] // Последние логи для каждого устройства, доступного текущему админу
         public async Task<IActionResult> GetLatestDeviceLogs()
         {
             var login = HttpContext.Session.GetCurrentUser();
@@ -188,14 +163,13 @@ namespace HackathonBackend.Controllers
                     return Ok(new List<DeviceLog>());
                 }
 
-                // Шаг 1: Получаем последние datetime для каждого устройства
-                var latestDates = await _context.Logs
+                var latestDates = await tocontext.Logs // Получаем последние datetime для каждого устройства
                     .Where(l => accessibleDeviceCodes.Contains(l.DeviceCode))
                     .GroupBy(l => l.DeviceCode)
                     .Select(g => new
                     {
                         DeviceCode = g.Key,
-                        LatestDatetime = g.Max(l => l.Datetime)
+                        LatestDatetime = g.Max(l => l.Datetime) // Последнее время
                     })
                     .ToListAsync();
 
@@ -204,46 +178,38 @@ namespace HackathonBackend.Controllers
                     return Ok(new List<DeviceLog>());
                 }
 
-                // Шаг 2: Получаем все логи для этих устройств одним запросом
-                var deviceCodes = latestDates.Select(ld => ld.DeviceCode).ToList();
-                var allLogs = await _context.Logs
+                var deviceCodes = latestDates.Select(ld => ld.DeviceCode).ToList(); // Получаем коды устройств
+                var allLogs = await tocontext.Logs // Получаем все логи для этих устройств одним запросом
                     .Where(l => deviceCodes.Contains(l.DeviceCode))
                     .ToListAsync();
 
-                // Шаг 3: Получаем все devices одним запросом
-                var devices = await _context.Devices
+                var devices = await tocontext.Devices // Получаем устройства одним запросом
                     .Where(d => deviceCodes.Contains(d.DeviceCode))
                     .ToListAsync();
                 
-                var deviceDict = devices.ToDictionary(d => d.DeviceCode);
+                var deviceDict = devices.ToDictionary(d => d.DeviceCode); // Словарь устройств
 
-                // Шаг 4: Получаем все actions одним запросом
-                var actions = await _context.Actions.ToListAsync();
+                var actions = await tocontext.Actions.ToListAsync(); // Получаем все действия одним запросом
                 var actionDict = actions.ToDictionary(
                     a => $"{a.ActionCode}|{a.AppVersion}",
                     a => a.ActionText
                 );
 
-                // Шаг 5: Фильтруем последние логи в памяти и собираем результат
-                var deviceLogsList = new List<DeviceLog>();
+                var deviceLogsList = new List<DeviceLog>(); // Список логов для устройств
                 
                 foreach (var latest in latestDates)
                 {
-                    // Находим лог с точным совпадением device_code и datetime
-                    var log = allLogs.FirstOrDefault(l => 
+                    var log = allLogs.FirstOrDefault(l =>  // Находим лог с точным совпадением device_code и datetime
                         l.DeviceCode == latest.DeviceCode && 
                         l.Datetime == latest.LatestDatetime);
                     
                     if (log == null) continue;
 
-                    // Получаем device из словаря
-                    deviceDict.TryGetValue(log.DeviceCode, out var device);
-                    
-                    // Получаем action text из словаря
-                    var actionKey = $"{log.ActionCode}|{log.AppVersion}";
+                    deviceDict.TryGetValue(log.DeviceCode, out var device); // Получаем device из словаря        
+                    var actionKey = $"{log.ActionCode}|{log.AppVersion}"; // Получаем action text из словаря
                     actionDict.TryGetValue(actionKey, out var actionText);
 
-                    deviceLogsList.Add(new DeviceLog
+                    deviceLogsList.Add(new DeviceLog // Добавляем лог в список
                     {
                         ActionCode = log.ActionCode,
                         AppVersion = log.AppVersion,
@@ -264,12 +230,8 @@ namespace HackathonBackend.Controllers
             }
         }
 
-        
 
-        /// <summary>
-        /// GetDeviceLogs возвращает все логи для указанного устройства, если у администратора есть к нему доступ
-        /// </summary>
-        [HttpGet("device/{deviceCode}")]
+        [HttpGet("device/{deviceCode}")] // Логи для устройства
         public async Task<IActionResult> GetDeviceLogs(string deviceCode, 
             [FromQuery] string[]? action_text,
             [FromQuery] string[]? app_version,
@@ -284,8 +246,7 @@ namespace HackathonBackend.Controllers
 
             try
             {
-                // First, verify the device exists and get its region and SMP code
-                var device = await _context.Devices
+                var device = await tocontext.Devices // Получаем устройство
                     .Where(d => d.DeviceCode == deviceCode)
                     .Select(d => new { d.RegionCode, d.SmpCode })
                     .FirstOrDefaultAsync();
@@ -295,11 +256,10 @@ namespace HackathonBackend.Controllers
                     return NotFound(new { error = "Устройство не найдено" });
                 }
 
-                // Check if admin has access to this device's region and SMP
                 var login = HttpContext.Session.GetCurrentUser();
                 if (!string.IsNullOrEmpty(login))
                 {
-                    var hasAccess = await _context.AdminSMPs
+                    var hasAccess = await tocontext.AdminSMPs
                         .AnyAsync(a => a.Login == login && 
                                       a.RegionCode == device.RegionCode && 
                                       a.SmpCode == device.SmpCode);
@@ -310,11 +270,10 @@ namespace HackathonBackend.Controllers
                     }
                 }
 
-                // Создаем базовый запрос
-                var query = from log in _context.Logs
-                           join d in _context.Devices on log.DeviceCode equals d.DeviceCode into deviceGroup
+                var query = from log in tocontext.Logs // Основной запрос - объединяем таблицы
+                           join d in tocontext.Devices on log.DeviceCode equals d.DeviceCode into deviceGroup
                            from d in deviceGroup.DefaultIfEmpty()
-                           join a in _context.Actions on new { log.ActionCode, log.AppVersion } equals new { a.ActionCode, a.AppVersion } into actionGroup
+                           join a in tocontext.Actions on new { log.ActionCode, log.AppVersion } equals new { a.ActionCode, a.AppVersion } into actionGroup
                            from a in actionGroup.DefaultIfEmpty()
                            where log.DeviceCode == deviceCode
                            select new DeviceLog
@@ -329,8 +288,7 @@ namespace HackathonBackend.Controllers
                                ActionText = a != null ? a.ActionText : "Неизвестное действие"
                            };
 
-                // Применяем фильтры
-                if (action_text != null && action_text.Length > 0)
+                if (action_text != null && action_text.Length > 0) // Для фильтрации
                 {
                     query = query.Where(dl => action_text.Contains(dl.ActionText));
                 }

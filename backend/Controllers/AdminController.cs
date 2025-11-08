@@ -7,32 +7,26 @@ using HackathonBackend.Utils;
 
 namespace HackathonBackend.Controllers
 {
-    /// <summary>
-    /// AdminController обрабатывает запросы, связанные с администраторами
-    /// </summary>
     [ApiController]
-    [Route("api")]
+    [Route("api")] // Обрабатывает запросы связанные с админами
     public class AdminController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly ILogger<AdminController> _logger;
+        private readonly ApplicationDbContext tocontext;
+        private readonly ILogger<AdminController> tologger;
 
         public AdminController(ApplicationDbContext context, ILogger<AdminController> logger)
         {
-            _context = context;
-            _logger = logger;
+            tocontext = context;
+            tologger = logger;
         }
 
-        /// <summary>
-        /// GetAllAdmins возвращает всех администраторов
-        /// </summary>
-        [HttpGet("admins")]
+        [HttpGet("admins")] // Возвращает всех админов
         public async Task<IActionResult> GetAllAdmins()
         {
             try
             {
-                var admins = await _context.Admins.ToListAsync();
-                return Ok(admins);
+                var admins = await tocontext.Admins.ToListAsync(); // Асинхронные функции, чтобы не блокировать поток все время
+                return Ok(admins);  
             }
             catch (Exception ex)
             {
@@ -40,15 +34,12 @@ namespace HackathonBackend.Controllers
             }
         }
 
-        /// <summary>
-        /// GetAllAdminSMP возвращает все связи между администраторами и СМП
-        /// </summary>
-        [HttpGet("admins-smp")]
+        [HttpGet("admins-smp")] // Возвращает список связей между админами и СМП
         public async Task<IActionResult> GetAllAdminSMP()
         {
             try
             {
-                var adminSMPs = await _context.AdminSMPs.ToListAsync();
+                var adminSMPs = await tocontext.AdminSMPs.ToListAsync();
                 return Ok(adminSMPs);
             }
             catch (Exception ex)
@@ -57,10 +48,7 @@ namespace HackathonBackend.Controllers
             }
         }
 
-        /// <summary>
-        /// Login обрабатывает вход администратора
-        /// </summary>
-        [HttpPost("login")]
+        [HttpPost("login")] // Обрабатывает вход администратора
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             if (!ModelState.IsValid)
@@ -70,22 +58,18 @@ namespace HackathonBackend.Controllers
 
             try
             {
-                var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Login == request.Login);
-                
-                if (admin == null)
+                var admin = await tocontext.Admins.FirstOrDefaultAsync(a => a.Login == request.Login);
+                            
+                if (admin == null) // Проверка пароля
                 {
-                    // Use the same error message to prevent user enumeration
                     return Unauthorized(new { error = "Неверный логин или пароль" });
                 }
-
-                // Verify password using bcrypt
                 if (!PasswordHelper.CheckPasswordHash(request.Password, admin.PasswordHash))
                 {
                     return Unauthorized(new { error = "Неверный логин или пароль" });
                 }
 
-                // Устанавливаем сессию пользователя
-                HttpContext.Session.SetUserSession(admin.Login);
+                HttpContext.Session.SetUserSession(admin.Login); // Устанавливаем сессию пользователя, чтобы не приходилось постоянно логаться
 
                 return Ok(new
                 {
@@ -95,15 +79,12 @@ namespace HackathonBackend.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Ошибка при входе: {ex.Message}");
+                tologger.LogError($"Ошибка при входе: {ex.Message}");
                 return StatusCode(500, new { error = "Ошибка при входе в систему" });
             }
         }
 
-        /// <summary>
-        /// Logout обрабатывает выход администратора
-        /// </summary>
-        [HttpPost("logout")]
+        [HttpPost("logout")] // Обработка выхода администратора
         public IActionResult Logout()
         {
             try
@@ -113,15 +94,12 @@ namespace HackathonBackend.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Ошибка при выходе: {ex.Message}");
+                tologger.LogError($"Ошибка при выходе: {ex.Message}");
                 return StatusCode(500, new { error = "Ошибка при выходе из системы" });
             }
         }
 
-        /// <summary>
-        /// GetCurrentAdmin возвращает информацию о текущем аутентифицированном пользователе
-        /// </summary>
-        [HttpGet("me")]
+        [HttpGet("me")] // Возвращает информацию о текущем пользователе
         public async Task<IActionResult> GetCurrentAdmin()
         {
             var login = HttpContext.Session.GetCurrentUser();
@@ -132,15 +110,14 @@ namespace HackathonBackend.Controllers
 
             try
             {
-                var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Login == login);
+                var admin = await tocontext.Admins.FirstOrDefaultAsync(a => a.Login == login);
                 
                 if (admin == null)
                 {
                     return StatusCode(500, new { error = "Ошибка при получении данных пользователя" });
                 }
 
-                // Не возвращаем хеш пароля
-                admin.PasswordHash = "";
+                admin.PasswordHash = ""; // Не возвращаем хеш пароля
                 return Ok(admin);
             }
             catch (Exception ex)
@@ -149,10 +126,7 @@ namespace HackathonBackend.Controllers
             }
         }
 
-        /// <summary>
-        /// GetCurrentUserSMPs возвращает список СМП текущего пользователя
-        /// </summary>
-        [HttpGet("me/smps")]
+        [HttpGet("me/smps")] // Возвращает список смп пользователя
         public async Task<IActionResult> GetCurrentUserSMPs()
         {
             var login = HttpContext.Session.GetCurrentUser();
@@ -163,9 +137,9 @@ namespace HackathonBackend.Controllers
 
             try
             {
-                var smps = await _context.AdminSMPs
+                var smps = await tocontext.AdminSMPs
                     .Where(asm => asm.Login == login)
-                    .Join(_context.SMPs,
+                    .Join(tocontext.SMPs,
                         asm => new { asm.RegionCode, asm.SmpCode },
                         smp => new { smp.RegionCode, smp.SmpCode },
                         (asm, smp) => smp)

@@ -84,7 +84,7 @@ function Layout() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <header style={{
-        background: 'linear-gradient(135deg, #B0C4DE 0%, #372F85 100%)',
+        background: '#372F85',
         padding: '0.75rem 1.5rem',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         position: 'sticky',

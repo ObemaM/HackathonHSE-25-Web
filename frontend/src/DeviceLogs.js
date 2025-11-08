@@ -140,7 +140,7 @@ export default function DeviceLogs() {
                 &larr; Назад к списку
             </button>
             <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', color: '#333' }}>Логи устройства: {deviceCode}</h2>
-            <p style={{ color: '#666', marginBottom: '1.5rem' }}>
+            <p style={{ color: '#333', marginBottom: '1.5rem' }}>
                 Всего записей: <strong>{logs.length}</strong>
                 {filteredLogs.length !== logs.length && (
                     <span style={{ marginLeft: '20px' }}>
@@ -152,7 +152,7 @@ export default function DeviceLogs() {
             
 
             {/* Таблица логов */}
-            <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', overflow: 'visible' }}>
+            <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', overflow: 'visible', position: 'relative' }}>
                 <div style={{ overflowX: 'auto' , overflow: 'visible'}}>
                     <table style={{ 
                         width: '100%', 
@@ -286,7 +286,7 @@ export default function DeviceLogs() {
                         <tbody>
                             {filteredLogs.length === 0 ? (
                                 <tr>
-                                    <td colSpan={fields.length + 1} style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
+                                    <td colSpan={fields.length + 1} style={{ padding: '2rem', textAlign: 'center', color: '#333' }}>
                                         Нет логов
                                     </td>
                                 </tr>
@@ -305,7 +305,6 @@ export default function DeviceLogs() {
                                             verticalAlign: 'middle',
                                             borderRight: '1px solid #eee',
                                             color: '#333',
-                                            fontWeight: '500'
                                         }}>
                                             {log.region_code || '—'}
                                         </td>
@@ -314,7 +313,7 @@ export default function DeviceLogs() {
                                             borderRight: '1px solid #eee',
                                             textAlign: 'center',
                                             verticalAlign: 'middle',
-                                            color: '#666'
+                                            color: '#333'
                                         }}>
                                             {log.smp_code || '—'}
                                         </td>
@@ -323,7 +322,7 @@ export default function DeviceLogs() {
                                             borderRight: '1px solid #eee',
                                             textAlign: 'center',
                                             verticalAlign: 'middle',
-                                            color: '#666'
+                                            color: '#333'
                                         }}>
                                             {log.team_number || '—'}
                                         </td>
@@ -332,7 +331,7 @@ export default function DeviceLogs() {
                                             borderRight: '1px solid #eee',
                                             textAlign: 'center',
                                             verticalAlign: 'middle',
-                                            color: '#666'
+                                            color: '#333'
                                         }}>
                                             {log.action_text || '—'}
                                         </td>
@@ -341,7 +340,7 @@ export default function DeviceLogs() {
                                             borderRight: '1px solid #eee',
                                             textAlign: 'center',
                                             verticalAlign: 'middle',
-                                            color: '#666',
+                                            color: '#333',
                                             textAlign: 'center'
                                         }}>
                                             {log.app_version || '—'}
@@ -359,6 +358,18 @@ export default function DeviceLogs() {
                         </tbody>
                     </table>
                 </div>
+                {/* Благодаря этому блоку не торчит линия-разделитель строк таблицы в последней ячейке */}
+                <div style={{
+                    position: 'absolute',
+                    bottom: '-14px',
+                    left: 0,
+                    right: 0,
+                    height: '25px',
+                    background: 'white',
+                    borderBottomLeftRadius: '12px',
+                    borderBottomRightRadius: '12px',
+                    zIndex: 1
+                }} />
             </div>
 
             {/* Оверлей для закрытия фильтров */}

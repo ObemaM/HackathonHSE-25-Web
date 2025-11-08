@@ -4,11 +4,8 @@ using HackathonBackend.Data;
 
 namespace HackathonBackend.Controllers
 {
-    /// <summary>
-    /// SMPController обрабатывает запросы, связанные с СМП
-    /// </summary>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/[controller]")] // Все запросы с мобильных устройств
     public class SMPController : ControllerBase
     {
         private readonly ApplicationDbContext tocontext;
@@ -18,10 +15,7 @@ namespace HackathonBackend.Controllers
             tocontext = context;
         }
 
-        /// <summary>
-        /// GetAllSMP возвращает все записи СМП
-        /// </summary>
-        [HttpGet]
+        [HttpGet] // Получает все записи СМП
         public async Task<IActionResult> GetAllSMP()
         {
             try
