@@ -159,15 +159,16 @@ export default function DevicesList() {
             }}></div> {/* Резервирование места под кнопку на DeviceLogs - 
             чтобы не "прыгала" таблица */}
             <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', color: '#333' }}>Последние логи устройств</h2>
-            <p style={{ color: '#666', marginBottom: '1.5rem' }}>
-                Всего устройств: <strong>{totalUnfiltered}</strong>
-                {totalCount !== totalUnfiltered && (
-                    <span style={{ marginLeft: '20px' }}>
-                        Отфильтровано: <strong>{totalCount}</strong>
-                    </span>
-                )}
-            </p>
-
+            {totalUnfiltered > 0 && (
+                <p style={{ color: '#666', marginBottom: '1.5rem' }}>
+                    Всего устройств: <strong>{totalUnfiltered}</strong>
+                    {totalCount !== totalUnfiltered && totalCount > 0 && (
+                        <span style={{ marginLeft: '20px' }}>
+                            Отфильтровано: <strong>{totalCount}</strong>
+                        </span>
+                    )}
+                </p>
+            )}
             {/* Таблица устройств */}
             <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', overflow: 'visible', position: 'relative'}}>
                 <div style={{ overflowX: 'auto', overflow: 'visible' }}>
