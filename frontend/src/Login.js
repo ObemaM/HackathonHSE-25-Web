@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login, getCurrentUser } from './api';
+import './index.css';
 
 export default function Login() {
     const [loginValue, setLogin] = useState('');
@@ -9,15 +10,15 @@ export default function Login() {
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
-    // Проверяем, авторизован ли пользователь
+    // Проверка, авторизован ли пользователь
     useEffect(() => {
         const checkAuth = async () => {
             try {
                 await getCurrentUser();
-                // Если пользователь уже авторизован, перенаправляем на главную
+                // Если пользователь уже авторизован, перенаправляется на главную
                 navigate('/devices');
             } catch (err) {
-                // Если не авторизован, остаемся на странице входа
+                // Если не авторизован, остаётся на странице входа
                 setIsLoading(false);
             }
         };
@@ -63,7 +64,8 @@ export default function Login() {
             margin: '100px auto', 
             padding: '20px',
             boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-            borderRadius: '8px'
+            borderRadius: '8px',
+            background: "#9ab7deff"
         }}>
             <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Вход в систему</h2>
             
@@ -123,7 +125,7 @@ export default function Login() {
                     style={{
                         width: '100%',
                         padding: '12px',
-                        backgroundColor: '#4CAF50',
+                        backgroundColor: '#372F85',
                         color: 'white',
                         border: 'none',
                         borderRadius: '4px',
@@ -132,8 +134,8 @@ export default function Login() {
                         transition: 'background-color 0.3s',
                         opacity: isLoading ? 0.7 : 1
                     }}
-                    onMouseOver={e => !isLoading && (e.target.style.backgroundColor = '#45a049')}
-                    onMouseOut={e => !isLoading && (e.target.style.backgroundColor = '#4CAF50')}
+                    onMouseOver={e => !isLoading && (e.target.style.backgroundColor = '#837ad6ff')}
+                    onMouseOut={e => !isLoading && (e.target.style.backgroundColor = '#372F85')}
                 >
                     {isLoading ? 'Вход...' : 'Войти'}
                 </button>

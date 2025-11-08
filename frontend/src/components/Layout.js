@@ -11,7 +11,7 @@ function Layout() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
+  // Закрытие выпадающего меню при клике вне его области
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -25,14 +25,14 @@ function Layout() {
     };
   }, []);
 
-  // Fetch user data and their SMPs
+  // Получение данные пользователя и его СМП
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const userData = await getCurrentUser();
         setUser(userData);
         
-        // Fetch user's SMPs
+        // Получение СМП пользователя
         try {
           const userSmps = await fetchCurrentUserSMPs();
           setSmps(userSmps);
@@ -84,7 +84,7 @@ function Layout() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <header style={{
-        backgroundColor: '#f8f9fa',
+        background: 'linear-gradient(135deg, #B0C4DE 0%, #372F85 100%)',
         padding: '0.75rem 1.5rem',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         position: 'sticky',
@@ -99,8 +99,9 @@ function Layout() {
         <h1 style={{ 
           margin: 0, 
           fontSize: '1.25rem',
-          fontWeight: '500',
-          color: '#333'
+          fontWeight: '600',
+          color: 'white',
+          textShadow: '0 1px 2px rgba(0, 0, 0, 0.6)' // Тень для чёткости
         }}>
           Мониторинг устройств
         </h1>
@@ -110,33 +111,42 @@ function Layout() {
               <div 
                 onClick={() => smps.length > 0 && setIsDropdownOpen(!isDropdownOpen)}
                 style={{ 
-                  color: '#555',
                   fontSize: '0.9rem',
-                  marginRight: '0.5rem',
                   cursor: smps.length > 0 ? 'pointer' : 'default',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.3rem',
                   padding: '0.3rem 0.6rem',
-                  borderRadius: '4px',
-                  backgroundColor: isDropdownOpen ? '#f0f0f0' : 'transparent',
-                  transition: 'background-color 0.2s ease',
+                  borderRadius: '6px',
+                  backgroundColor: isDropdownOpen 
+                    ? 'rgba(255, 255, 255, 0.9)'
+                    : 'rgba(255, 255, 255, 0.12)',
+                  transition: 'background-color 0.2s ease'
                 }}
               >
-                <span>{user.login}</span>
+                <span style={{
+                  color: isDropdownOpen ? '#000000' : 'white',
+                  textShadow: isDropdownOpen 
+                    ? 'none' 
+                    : '0 1px 2px rgba(0,0,0,0.25)',
+                  fontWeight: '500',
+                  transition: 'color 0.2s, text-shadow 0.2s'
+                }}>
+                  {user.login}
+                </span>
                 {smps.length > 0 && (
                   <svg 
                     width="12" 
                     height="12" 
                     viewBox="0 0 24 24" 
                     fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
+                    stroke={isDropdownOpen ? '#000000' : 'white'}
+                    strokeWidth="2"
+                    strokeLinecap="round"
                     strokeLinejoin="round"
                     style={{
                       transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0)',
-                      transition: 'transform 0.2s ease',
+                      transition: 'transform 0.2s ease, stroke 0.2s'
                     }}
                   >
                     <polyline points="6 9 12 15 18 9"></polyline>
@@ -153,8 +163,8 @@ function Layout() {
                     backgroundColor: 'white',
                     borderRadius: '4px',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                    minWidth: '280px',
-                    maxWidth: '90vw',
+                    minWidth: '200px',
+                    width: 'max-content',
                     zIndex: 1000,
                     marginTop: '0.3rem',
                     overflow: 'hidden',
@@ -210,9 +220,9 @@ function Layout() {
                           color: '#6c757d',
                           marginRight: '0.5rem'
                         }}>
-                          {smp.region_code}:
+                          Регион: {smp.region_code}; 
                         </span>
-                        {smp.smp_code}
+                        СМП: {smp.smp_code}
                       </div>
                     ))}
                   </div>

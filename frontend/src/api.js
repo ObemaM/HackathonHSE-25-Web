@@ -24,6 +24,7 @@ async function fetchWithAuth(url, options = {}) {
     return response;
 }
 
+// HTTP-запрос для входа администратора
 export async function login(adminLogin, password) {
     const response = await fetchWithAuth(`${API_BASE}/login`, {
         method: 'POST',
@@ -32,12 +33,14 @@ export async function login(adminLogin, password) {
     return true;
 }
 
+// HTTP-запрос для выхода из системы
 export async function logout() {
     await fetchWithAuth(`${API_BASE}/logout`, {
         method: 'POST',
     });
 }
 
+// Получение данных текущего авторизованного пользователя
 export async function getCurrentUser() {
     const response = await fetchWithAuth(`${API_BASE}/me`);
     return response.json();
