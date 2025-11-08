@@ -73,20 +73,9 @@ namespace HackathonBackend.Controllers
                     await tocontext.SaveChangesAsync();
                 }
 
-                var action = await tocontext.Actions // Проверяем и создаем действие
+                var action = await tocontext.Actions // Проверяем действие
                     .FirstOrDefaultAsync(a => a.ActionCode == request.ActionCode && a.AppVersion == request.AppVersion);
-                
-                if (action == null)
-                {
-                    action = new Models.Action
-                    {
-                        ActionCode = request.ActionCode,
-                        AppVersion = request.AppVersion,
-                        ActionText = request.ActionText ?? $"Действие {request.ActionCode}"
-                    };
-                    tocontext.Actions.Add(action);
-                    await tocontext.SaveChangesAsync();
-                }
+
 
                 var datetime = request.Datetime ?? DateTime.UtcNow; // Создаем лог, если его нет
                 var log = new Log
