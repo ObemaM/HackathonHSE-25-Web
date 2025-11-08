@@ -163,8 +163,8 @@ function Layout() {
                     backgroundColor: 'white',
                     borderRadius: '4px',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                    minWidth: '280px',
-                    maxWidth: '90vw',
+                    minWidth: '200px',
+                    width: 'max-content',
                     zIndex: 1000,
                     marginTop: '0.3rem',
                     overflow: 'hidden',
@@ -220,9 +220,9 @@ function Layout() {
                           color: '#6c757d',
                           marginRight: '0.5rem'
                         }}>
-                          {smp.region_code}:
+                          Регион: {smp.region_code}; 
                         </span>
-                        {smp.smp_code}
+                        СМП: {smp.smp_code}
                       </div>
                     ))}
                   </div>
