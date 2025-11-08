@@ -4,9 +4,7 @@ using System.Text.Json;
 
 namespace HackathonBackend.Middleware
 {
-    /// <summary>
-    /// AuthenticationMiddleware проверяет аутентификацию пользователя
-    /// </summary>
+    // AuthenticationMiddleware проверяет аутентификацию пользователя
     public class AuthenticationMiddleware
     {
         private readonly RequestDelegate tonext;
