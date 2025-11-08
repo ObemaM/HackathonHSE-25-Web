@@ -208,8 +208,9 @@ export default function DeviceLogs() {
                                             zIndex: 1000,
                                             maxHeight: '200px',
                                             overflowY: 'auto',
-                                            minWidth: '160px',
+                                            minWidth: '200px',
                                             borderRadius: '4px',
+                                            width: 'max-content',
                                             marginTop: '4px'
                                         }}
                                         onClick={e => e.stopPropagation()}
@@ -233,7 +234,8 @@ export default function DeviceLogs() {
                                                 padding: '4px 8px',
                                                 borderRadius: '4px',
                                                 border: '1px solid #ddd',
-                                                fontSize: '13px'
+                                                fontSize: '13px',
+                                                boxSizing: 'border-box'
                                             }}
                                             />
                                         </div>
