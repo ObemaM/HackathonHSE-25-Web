@@ -18,33 +18,38 @@ export default function DevicesList() {
     const [uniqueValues, setUniqueValues] = useState({}); // Уникальные значения для фильтров
     const [openFilter, setOpenFilter] = useState(null); // Какая выпадающая панель фильтра сейчас открыта (null - ни одна)
     const [searchTerms, setSearchTerms] = useState({}); // Поисковые запросы для фильтров
+    const [offset, setOffset] = useState(0); // Смещение для пагинации - сколько элементов уже загружено
+    const [hasMore, setHasMore] = useState(true); // Есть ли еще данные для загрузки
+    const [totalCount, setTotalCount] = useState(0); // Общее количество элементов после фильтрации
+    const [totalUnfiltered, setTotalUnfiltered] = useState(0); // Общее количество элементов БЕЗ фильтров
+    const [isLoadingMore, setIsLoadingMore] = useState(false); // Идет ли подгрузка следующей порции
     const navigate = useNavigate(); // Объект Для навигации по страницам сайта
 
-    // Обновление уникальных значений при обновлении данных на устройствах
+    // Загрузка уникальных значений для фильтров с учетом текущих фильтров (каскадная фильтрация)
     useEffect(() => {
-        if (devices.length > 0) {
-            const values = {};
-            fields.forEach(field => {
-                values[field.key] = getUniqueValues(field.key);
-            });
-            setUniqueValues(values);
-        }
-    }, [devices]);
+        const loadUniqueValues = async () => {
+            try {
+                const values = await fetchUniqueValues(filters); // Передаем текущие фильтры
+                setUniqueValues(values);
+            } catch (err) {
+                console.error('Ошибка загрузки уникальных значений:', err);
+            }
+        };
+        loadUniqueValues();
+    }, [filters]); // Перезагружаем при изменении фильтров
 
-    // Выполняется при загрузке компонента и при любом изменении фильтров
+    // Выполняется при загрузке компонента и при любом изменении фильтров для загрузки данных таблицы
     useEffect(() => {
         const load = async () => {
             setLoading(true); // Включает индикатор/состояние загрузки
+            setOffset(0); // Сбрасываем offset при изменении фильтров
             try {
-                // Преобразует выбранные фильтры в формат для отправки на бэк: массив - строка через запятую
-                const filtersToSend = {};
-                for (const [key, value] of Object.entries(filters)) {
-                    if (value && value.length > 0) {
-                        filtersToSend[key] = value.join(','); // Например: smp_code=SMP-01,SMP-02
-                    }
-                }
-                const data = await fetchLatestLogs(filtersToSend); // Вызов HTTP запроса из api.js с фильтрами
-                setDevices(data); // Обновление таблицу
+                const response = await fetchLatestLogs(0, 50, filters); // Загружаем первую порцию данных (offset=0, limit=50)
+                setDevices(response.data); // Устанавливаем новые данные (заменяем старые)
+                setTotalCount(response.total); // Общее количество после фильтрации
+                setTotalUnfiltered(response.totalUnfiltered); // Общее количество БЕЗ фильтров
+                setHasMore(response.hasMore); // Есть ли еще данные
+                setOffset(50); // Следующая загрузка начнется с 50-го элемента
             } 
             catch (err) { // Если произошла ошибка, будет показано её сообщение
                 setError(err.message);
@@ -54,11 +59,42 @@ export default function DevicesList() {
             }
         };
 
-        // Задержка (debounce), чтобы не отправлять запрос при каждом нажатии клавиши
-        const timer = setTimeout(load, 300);
-        return () => clearTimeout(timer); // Отмена таймера, если фильтр изменился снова
+        load(); // Вызываем сразу при изменении фильтров
     }, [filters]);
 
+    // Функция для загрузки следующей порции данных при прокрутке вниз
+    const loadMore = async () => {
+        if (isLoadingMore || !hasMore) return; // Если уже идет загрузка или нет больше данных - выходим
+        
+        setIsLoadingMore(true); // Начинаем загрузку
+        try {
+            const response = await fetchLatestLogs(offset, 50, filters); // Загружаем следующую порцию
+            setDevices(prev => [...prev, ...response.data]); // Добавляем новые данные к существующим
+            setTotalCount(response.total); // Обновляем общее количество
+            setTotalUnfiltered(response.totalUnfiltered); // Обновляем общее количество БЕЗ фильтров
+            setHasMore(response.hasMore); // Обновляем флаг hasMore
+            setOffset(prev => prev + 50); // Увеличиваем offset на 50
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoadingMore(false); // Завершаем загрузку
+        }
+    };
+
+    // Обработчик прокрутки для infinite scroll - подгружает данные при приближении к концу списка
+    useEffect(() => {
+        const handleScroll = () => {
+            // Проверяем достиг ли пользователь конца страницы (с запасом 100px)
+            const scrolledToBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100;
+            
+            if (scrolledToBottom && hasMore && !isLoadingMore) {
+                loadMore(); // Загружаем следующую порцию
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll); // Подписываемся на событие прокрутки
+        return () => window.removeEventListener('scroll', handleScroll); // Отписываемся при размонтировании
+    }, [hasMore, isLoadingMore, offset, filters]); // Зависимости для useEffect
 
     // Обработчик изменения выбранного значения в фильтре
     const toggleFilter = (field, value) => {
@@ -90,22 +126,17 @@ export default function DevicesList() {
         { key: 'device_code', label: 'Номер устройства' }
     ];
 
-    // Получение уникальных значений для каждого поля текущей таблицы
+    // Получение уникальных значений для каждого поля из данных с сервера
     const getUniqueValues = (key) => {
-        const values = new Set();
-        devices.forEach(device => {
-            if (device[key]) {
-                values.add(device[key].toString());
-            }
-        });
-        return Array.from(values).sort();
+        return uniqueValues[key] || []; // Возвращаем значения с сервера
     };
 
     // Фильтрация значений по поисковому запросу
     const getFilteredValues = (key) => {
         const searchTerm = (searchTerms[key] || '').toLowerCase();
-        return getUniqueValues(key).filter(value => 
-            value.toLowerCase().includes(searchTerm)
+        const values = getUniqueValues(key);
+        return values.filter(value => 
+            value.toString().toLowerCase().includes(searchTerm)
         );
     };
 
@@ -116,22 +147,8 @@ export default function DevicesList() {
         }));
     };
 
-    // Функция для применения фильтров к данным
-    const filterDevices = (devices, filters) => {
-        // Если нет активных фильтров - возвращение всех устройств
-        const activeFilters = Object.entries(filters).filter(([_, values]) => values && values.length > 0);
-        if (activeFilters.length === 0) return devices;
-        
-        return devices.filter(device => {
-            return activeFilters.every(([key, values]) => {
-                const deviceValue = device[key] || '';
-                return values.includes(deviceValue.toString());
-            });
-        });
-    };
-    
-    // Применение фильтров к данным
-    const filteredDevices = filterDevices(devices, filters);
+    // Фильтрация теперь происходит на backend, поэтому используем devices напрямую
+    const filteredDevices = devices;
 
     return (
         <div style={{ padding: '20px' }}>
@@ -143,10 +160,10 @@ export default function DevicesList() {
             чтобы не "прыгала" таблица */}
             <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', color: '#333' }}>Последние логи устройств</h2>
             <p style={{ color: '#666', marginBottom: '1.5rem' }}>
-                Всего устройств: <strong>{devices.length}</strong>
-                {filteredDevices.length !== devices.length && (
+                Всего устройств: <strong>{totalUnfiltered}</strong>
+                {totalCount !== totalUnfiltered && (
                     <span style={{ marginLeft: '20px' }}>
-                        Отфильтровано: <strong>{filteredDevices.length}</strong>
+                        Отфильтровано: <strong>{totalCount}</strong>
                     </span>
                 )}
             </p>
@@ -319,6 +336,18 @@ export default function DevicesList() {
                     zIndex: 1
                 }} />
             </div>
+
+            {/* Индикатор загрузки данных, не замтено пока, но при больших объемах возможно */}
+            {isLoadingMore && (
+                <div style={{ 
+                    textAlign: 'center', 
+                    padding: '1rem', 
+                    color: '#666',
+                    fontSize: '0.9rem'
+                }}>
+                    Загрузка данных...
+                </div>
+            )}
 
             {/* Прозрачный оверлей для закрытия выпадающих панелей при клике вне */}
             {openFilter && (

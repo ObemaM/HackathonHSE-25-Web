@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'; // useState для хранения состояния (как в Login.js), useEffect - выполняет код при загрузке компонента
 import { useNavigate, useParams } from 'react-router-dom'; // для перехода на другую страницу
-import { fetchDeviceLogs } from './api'; // функции из api.js
+import { fetchDeviceLogs, fetchUniqueValuesForDevice } from './api'; // функции из api.js
 import './index.css';
 
 
@@ -20,6 +20,11 @@ export default function DeviceLogs() {
     const [uniqueValues, setUniqueValues] = useState({}); // Все уникальные значения для фильтров
     const [openFilter, setOpenFilter] = useState(null); // Какая выпадающая панель открыта
     const [searchTerms, setSearchTerms] = useState({}); // Поисковые запросы для фильтров
+    const [offset, setOffset] = useState(0); // Смещение для пагинации
+    const [hasMore, setHasMore] = useState(true); // Есть ли еще данные для загрузки
+    const [totalCount, setTotalCount] = useState(0); // Общее количество логов после фильтрации
+    const [totalUnfiltered, setTotalUnfiltered] = useState(0); // Общее количество логов БЕЗ фильтров
+    const [isLoadingMore, setIsLoadingMore] = useState(false); // Идет ли подгрузка следующей порции
     const navigate = useNavigate(); // Объект Для навигации по страницам сайта
 
     // Описание полей таблицы и их названий для фильтрации
@@ -31,24 +36,31 @@ export default function DeviceLogs() {
         { key: 'app_version', label: 'Версия приложения' }
     ];
 
-    // Обновление уникальных значений при изменении даты логов
+    // Загрузка уникальных значений для фильтров с учетом текущих фильтров
     useEffect(() => {
-        if (logs.length > 0) {
-            const values = {};
-            fields.forEach(field => {
-                values[field.key] = getUniqueValues(field.key);
-            });
-            setUniqueValues(values);
-        }
-    }, [logs]);
+        const loadUniqueValues = async () => {
+            try {
+                const values = await fetchUniqueValuesForDevice(deviceCode, filters); // Передаем текущие фильтры
+                setUniqueValues(values);
+            } catch (err) {
+                console.error('Ошибка загрузки уникальных значений:', err);
+            }
+        };
+        loadUniqueValues();
+    }, [deviceCode, filters]); // Перезагружаем при изменении deviceCode или фильтров
 
-    // Загрузка логов один раз при монтировании компонента
+    // Загрузка логов при монтировании компонента и при изменении фильтров
     useEffect(() => {
         const load = async () => {
             setLoading(true);
+            setOffset(0); // Сбрасываем offset при изменении фильтров
             try {
-                const data = await fetchDeviceLogs(deviceCode, {});
-                setLogs(data);
+                const response = await fetchDeviceLogs(deviceCode, 0, 50, filters); // Загружаем первую порцию
+                setLogs(response.data); // Устанавливаем новые данные
+                setTotalCount(response.total); // Общее количество после фильтрации
+                setTotalUnfiltered(response.totalUnfiltered); // Общее количество БЕЗ фильтров
+                setHasMore(response.hasMore); // Есть ли еще данные
+                setOffset(50); // Следующая загрузка начнется с 50-го элемента
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -56,7 +68,41 @@ export default function DeviceLogs() {
             }
         };
         load();
-    }, [deviceCode]);
+    }, [deviceCode, filters]);
+
+    // Функция для загрузки следующей порции логов при прокрутке
+    const loadMore = async () => {
+        if (isLoadingMore || !hasMore) return; // Если уже идет загрузка или нет больше данных - выходим
+        
+        setIsLoadingMore(true); // Начинаем загрузку
+        try {
+            const response = await fetchDeviceLogs(deviceCode, offset, 50, filters); // Загружаем следующую порцию
+            setLogs(prev => [...prev, ...response.data]); // Добавляем новые данные к существующим
+            setTotalCount(response.total); // Обновляем общее количество после фильтрации
+            setTotalUnfiltered(response.totalUnfiltered); // Обновляем общее количество БЕЗ фильтров
+            setHasMore(response.hasMore); // Обновляем флаг hasMore
+            setOffset(prev => prev + 50); // Увеличиваем offset на 50
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoadingMore(false); // Завершаем загрузку
+        }
+    };
+
+    // Обработчик прокрутки для infinite scroll
+    useEffect(() => {
+        const handleScroll = () => {
+            // Проверяем достиг ли пользователь конца страницы (с запасом 100px)
+            const scrolledToBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100;
+            
+            if (scrolledToBottom && hasMore && !isLoadingMore) {
+                loadMore(); // Загружаем следующую порцию
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll); // Подписываемся на событие прокрутки
+        return () => window.removeEventListener('scroll', handleScroll); // Отписываемся при размонтировании
+    }, [hasMore, isLoadingMore, offset, filters]); // Зависимости для useEffect
 
     const toggleFilter = (field, value) => {
         setFilters(prev => {
@@ -76,22 +122,17 @@ export default function DeviceLogs() {
         });
     };
 
-    // Получение уникальных значений для каждого поля из текущей таблицы
+    // Получение уникальных значений для каждого поля из данных с сервера
     const getUniqueValues = (key) => {
-        const values = new Set();
-        logs.forEach(log => {
-            if (log[key]) {
-                values.add(log[key].toString());
-            }
-        });
-        return Array.from(values).sort();
+        return uniqueValues[key] || []; // Возвращаем значения с сервера
     };
 
     // Фильтрация значений по поисковому запросу
     const getFilteredValues = (key) => {
         const searchTerm = (searchTerms[key] || '').toLowerCase();
-        return getUniqueValues(key).filter(value => 
-            value.toLowerCase().includes(searchTerm)
+        const values = getUniqueValues(key);
+        return values.filter(value => 
+            value.toString().toLowerCase().includes(searchTerm)
         );
     };
 
@@ -105,22 +146,8 @@ export default function DeviceLogs() {
     if (loading && logs.length === 0) return <div style={{ padding: '20px', textAlign: 'center', marginTop: '2rem' }}>Загрузка данных...</div>;
     if (error) return <div style={{ color: '#dc3545', padding: '20px', background: '#fff8f8', borderRadius: '4px', margin: '1rem 0' }}>Ошибка загрузки: {error}</div>;
 
-    // Функция для применения фильтров к данным
-    const filterLogs = (logs, filters) => {
-        // Если нет активных фильтров - возврат всех логов
-        const activeFilters = Object.entries(filters).filter(([_, values]) => values && values.length > 0);
-        if (activeFilters.length === 0) return logs;
-        
-        return logs.filter(log => {
-            return activeFilters.every(([key, values]) => {
-                const logValue = log[key] || '';
-                return values.includes(logValue.toString());
-            });
-        });
-    };
-    
-    // Применяем фильтры к данным
-    const filteredLogs = filterLogs(logs, filters);
+    // Фильтрация теперь происходит на backend, поэтому используем logs напрямую
+    const filteredLogs = logs;
 
     return (
         <div style={{ padding: '20px' }}>
@@ -141,10 +168,10 @@ export default function DeviceLogs() {
             </button>
             <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.5rem', color: '#333' }}>Логи устройства: {deviceCode}</h2>
             <p style={{ color: '#333', marginBottom: '1.5rem' }}>
-                Всего записей: <strong>{logs.length}</strong>
-                {filteredLogs.length !== logs.length && (
+                Всего записей: <strong>{totalUnfiltered}</strong>
+                {totalCount !== totalUnfiltered && (
                     <span style={{ marginLeft: '20px' }}>
-                        Отфильтровано: <strong>{filteredLogs.length}</strong>
+                        Отфильтровано: <strong>{totalCount}</strong>
                     </span>
                 )}
             </p>
@@ -371,6 +398,18 @@ export default function DeviceLogs() {
                     zIndex: 1
                 }} />
             </div>
+
+            {/* Индикатор загрузки данных, не замтено пока, но при больших объемах возможно */}
+            {isLoadingMore && (
+                <div style={{ 
+                    textAlign: 'center', 
+                    padding: '1rem', 
+                    color: '#666',
+                    fontSize: '0.9rem'
+                }}>
+                    Загрузка данных...
+                </div>
+            )}
 
             {/* Оверлей для закрытия фильтров */}
             {openFilter && (

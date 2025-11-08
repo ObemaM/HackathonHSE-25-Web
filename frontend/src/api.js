@@ -46,35 +46,85 @@ export async function getCurrentUser() {
     return response.json();
 }
 
-// HTTP-запрос для получения последнего лога каждого из устройств в БД
-export async function fetchLatestLogs() {
-    const response = await fetchWithAuth(`${API_BASE}/logs/latest`);
+// HTTP-запрос для получения последнего лога каждого из устройств в БД с пагинацией и фильтрами
+export async function fetchLatestLogs(offset = 0, limit = 50, filters = {}) {
+    const params = new URLSearchParams();
+    params.append('offset', offset);
+    params.append('limit', limit);
+    
+    // Добавляем фильтры в параметры запроса
+    Object.entries(filters).forEach(([key, values]) => {
+        if (values && values.length > 0) {
+            values.forEach(value => {
+                params.append(key, value);
+            });
+        }
+    });
+    
+    const response = await fetchWithAuth(`${API_BASE}/logs/latest?${params.toString()}`);
     if (!response.ok) throw new Error('Не удалось загрузить последние логи устройств');
     return await response.json();
 }
 
-// HTTP-запрос для получения всех логов конкретного устройства в БД
-export async function fetchDeviceLogs(deviceCode, filters = {}) {
-    const queryParams = new URLSearchParams(filters).toString();
-    const url = queryParams 
-        ? `${API_BASE}/logs/device/${deviceCode}?${queryParams}` 
-        : `${API_BASE}/logs/device/${deviceCode}`;
+// HTTP-запрос для получения всех логов конкретного устройства в БД с пагинацией и фильтрами
+export async function fetchDeviceLogs(deviceCode, offset = 0, limit = 50, filters = {}) {
+    const params = new URLSearchParams();
+    params.append('offset', offset);
+    params.append('limit', limit);
+    
+    // Добавляем фильтры в параметры запроса
+    Object.entries(filters).forEach(([key, values]) => {
+        if (values && values.length > 0) {
+            values.forEach(value => {
+                params.append(key, value);
+            });
+        }
+    });
 
+    const url = `${API_BASE}/logs/device/${deviceCode}?${params.toString()}`;
     const response = await fetchWithAuth(url);
     if (!response.ok) throw new Error(`Не удалось загрузить логи устройства с кодом ${deviceCode}`);
     return await response.json();
 }
 
-// HTTP-запрос для получения уникальных значений для DevicesList
-export async function fetchUniqueValues() {
-    const response = await fetchWithAuth(`${API_BASE}/logs/unique-values`);
+// HTTP-запрос для получения уникальных значений для DevicesList с учетом текущих фильтров
+export async function fetchUniqueValues(filters = {}) {
+    const params = new URLSearchParams();
+    
+    // Добавляем параметры фильтров в запрос
+    for (const [key, values] of Object.entries(filters)) {
+        if (values && values.length > 0) {
+            values.forEach(value => params.append(key, value));
+        }
+    }
+    
+    const queryString = params.toString();
+    const url = queryString 
+        ? `${API_BASE}/logs/unique-values?${queryString}` 
+        : `${API_BASE}/logs/unique-values`;
+    
+    const response = await fetchWithAuth(url);
     if (!response.ok) throw new Error('Не удалось загрузить фильтры');
     return await response.json();
 }
 
-// HTTP-запрос для получения уникальных значений для DeviceLogs
-export async function fetchUniqueValuesForDevice(deviceCode) {
-    const response = await fetchWithAuth(`${API_BASE}/logs/device/${deviceCode}/unique-values`);
+// HTTP-запрос для получения уникальных значений для DeviceLogs с учетом фильтров
+export async function fetchUniqueValuesForDevice(deviceCode, filters = {}) {
+    const params = new URLSearchParams();
+    
+    // Добавляем параметры фильтров в запрос
+    for (const [key, values] of Object.entries(filters)) {
+        if (values && values.length > 0) {
+            values.forEach(value => params.append(key, value));
+        }
+    }
+    
+    const queryString = params.toString();
+    const url = queryString 
+        ? `${API_BASE}/logs/device/${deviceCode}/unique-values?${queryString}` 
+        : `${API_BASE}/logs/device/${deviceCode}/unique-values`;
+    
+    const response = await fetchWithAuth(url);
     if (!response.ok) throw new Error('Не удалось загрузить фильтры для устройства');
     return await response.json();
 }
