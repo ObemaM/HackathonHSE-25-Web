@@ -152,8 +152,8 @@ export default function DeviceLogs() {
             
 
             {/* Таблица логов */}
-            <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
-                <div style={{ overflowX: 'auto' }}>
+            <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', overflow: 'visible' }}>
+                <div style={{ overflowX: 'auto' , overflow: 'visible'}}>
                     <table style={{ 
                         width: '100%', 
                         borderCollapse: 'collapse',

@@ -11,7 +11,7 @@ function Layout() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
+  // Закрытие выпадающего меню при клике вне его области
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -25,14 +25,14 @@ function Layout() {
     };
   }, []);
 
-  // Fetch user data and their SMPs
+  // Получение данные пользователя и его СМП
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const userData = await getCurrentUser();
         setUser(userData);
         
-        // Fetch user's SMPs
+        // Получение СМП пользователя
         try {
           const userSmps = await fetchCurrentUserSMPs();
           setSmps(userSmps);
@@ -140,7 +140,7 @@ function Layout() {
                     height="12" 
                     viewBox="0 0 24 24" 
                     fill="none" 
-                    stroke={isDropdownOpen ? '#000000' : 'white'} // ← тоже меняем цвет стрелки!
+                    stroke={isDropdownOpen ? '#000000' : 'white'}
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
