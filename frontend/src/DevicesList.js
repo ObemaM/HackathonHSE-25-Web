@@ -271,7 +271,7 @@ export default function DevicesList() {
                                         {f.label}
                                     </th>
                                 ))}
-                                <th style={{ textAlign: 'center' }}>Дата действия</th>
+                                <th style={{ textAlign: 'center', borderRight: '1px solid #dee2e6' }}>Дата действия</th>
                                 <th style={{ textAlign: 'center' }}>Действия</th>
                             </tr>
                         </thead>

@@ -3,9 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HackathonBackend.Models
 {
-    /// <summary>
-    /// AdminSMP представляет связь между администратором и СМП
-    /// </summary>
+    // Таблица связей админов и СМП
     [Table("admins_smp")]
     public class AdminSMP
     {

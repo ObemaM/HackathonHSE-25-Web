@@ -2,10 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace HackathonBackend.Models.DTOs
 {
-    /// <summary>
-    /// LoginRequest представляет структуру запроса на вход
-    /// </summary>
-    public class LoginRequest
+    public class LoginRequest // Запрос на вход
     {
         [Required]
         public string Login { get; set; } = string.Empty;

@@ -3,9 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HackathonBackend.Models
 {
-    /// <summary>
-    /// Action представляет таблицу actions
-    /// </summary>
+    // Таблица действий
     [Table("actions")]
     public class Action
     {

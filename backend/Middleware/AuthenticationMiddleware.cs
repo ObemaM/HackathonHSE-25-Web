@@ -4,7 +4,6 @@ using System.Text.Json;
 
 namespace HackathonBackend.Middleware
 {
-    // AuthenticationMiddleware проверяет аутентификацию пользователя
     public class AuthenticationMiddleware
     {
         private readonly RequestDelegate tonext;
@@ -16,25 +15,22 @@ namespace HackathonBackend.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
-            var user = context.Session.GetCurrentUser();
+            var user = context.Session.GetCurrentUser(); // Получаем пользователя из сессии
             
             if (string.IsNullOrEmpty(user))
             {
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 context.Response.ContentType = "application/json";
                 
-                var response = new { error = "Требуется аутентификация" };
+                var response = new { error = "Требуется аутентификация" }; // Возвращаем JSON с ошибкой
                 await context.Response.WriteAsync(JsonSerializer.Serialize(response));
                 return;
             }
 
-            await tonext(context);
+            await tonext(context); // Если пользователь авторизован, передаем запрос дальше
         }
     }
 
-    /// <summary>
-    /// Расширение для удобного добавления middleware
-    /// </summary>
     public static class AuthenticationMiddlewareExtensions
     {
         public static IApplicationBuilder UseAuthenticationMiddleware(this IApplicationBuilder builder)

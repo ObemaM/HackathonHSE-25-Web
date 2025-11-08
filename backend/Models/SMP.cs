@@ -4,9 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace HackathonBackend.Models
 {
-    /// <summary>
-    /// SMP представляет таблицу smp
-    /// </summary>
+    // Таблица СМПф
     [Table("smp")]
     public class SMP
     {

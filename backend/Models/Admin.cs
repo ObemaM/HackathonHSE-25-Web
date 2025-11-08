@@ -3,9 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HackathonBackend.Models
 {
-    /// <summary>
-    /// Admin представляет таблицу admins
-    /// </summary>
+    // Таблица админов
     [Table("admins")]
     public class Admin
     {

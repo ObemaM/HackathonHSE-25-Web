@@ -6,13 +6,13 @@ services:
       - POSTGRES_DB=HackathonHSE-25
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=paralledp
-    volumes:
+    volumes: # Без тома данные будут теряться
       - postgres_data:/var/lib/postgresql/data
-    networks:
+    networks: # Подключение к сети
       - kopimelik
     ports:
-      - "5433:5432"
-    healthcheck:
+      - "5433:5432" # 5433 на хосте, а 5432 внутри контейнера
+    healthcheck: # Проверка состояния БД
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
@@ -25,16 +25,16 @@ services:
     container_name: hackathon_backend
     environment:
       - DB_HOST=db
-      - DB_PORT=5432
+      - DB_PORT=5432 # Порт внутри контейнера, всегда 5432
       - DB_NAME=HackathonHSE-25
       - DB_USER=postgres
       - DB_PASSWORD=paralledp
-      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_URLS=http://+:8080 # На нем ASP.NET слушает запросы
     networks:
       - kopimelik
     ports:
-      - "8080:8080"
-    depends_on:
+      - "8080:8080" # Проброс одинаковый и внутри и на хосте
+    depends_on: # Проверка БД
       db:
         condition: service_healthy
 
@@ -43,16 +43,16 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: hackathon_frontend
-    depends_on:
+    depends_on: # backend должен запуститься раньше
       - backend
     networks:
       - kopimelik
     ports:
-      - "3000:80"
+      - "3000:80" # В контейнере слушает на 80, а отправляет на 3000 - обращаться к http://localhost:3000
 
 networks:
-  kopimelik:
-    driver: bridge
+  kopimelik: # Сеть
+    driver: bridge # Дефолтная сеть
 
 volumes:
-  postgres_data:
+  postgres_data: # Docker автоматически создаст и будет управлять этим томом, нужно для того, чтобы данные не стирались при перезапуске

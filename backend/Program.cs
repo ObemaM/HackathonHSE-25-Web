@@ -57,7 +57,7 @@ builder.Services.AddCors(options =>
               .WithExposedHeaders("Content-Length");
     });
     
-    // Отдельная политика для мобильных устройств (без ограничений по origin)
+    // Отдельная политика для мобильных устройств
     options.AddPolicy("MobilePolicy", policy =>
     {
         policy.AllowAnyOrigin()
@@ -67,7 +67,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Добавляем Swagger для документации API (опционально)
+// Для всех эндпоинтов
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
@@ -92,17 +92,14 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Настройка middleware pipeline
+// Настройка middleware
 app.UseSession();
 app.UseCors();
 
-// Redirect root to API documentation
+// Перенаправление на API
 app.MapGet("/", () => Results.Redirect("/api"));
 
-// Redirect monitoring to frontend
-app.MapGet("/monitoring", () => Results.Redirect("http://localhost:3000"));
-
-// API documentation endpoint
+// API эндпоинты
 app.MapGet("/api", () => Results.Json(new
 {
     message = "Это API проекта",
@@ -114,16 +111,8 @@ app.MapGet("/api", () => Results.Json(new
         actions = "/api/actions",
         devices = "/api/devices",
         logs = "/api/logs",
-        health = "/health",
-        monitoring = "/monitoring"
+        health = "/health"
     }
-}));
-
-// Test endpoint
-app.MapGet("/api/test", () => Results.Json(new
-{
-    message = "Test endpoint is working",
-    status = "success"
 }));
 
 // Применяем CORS политику для мобильных устройств
@@ -142,12 +131,10 @@ app.MapWhen(
 // Публичные маршруты (без аутентификации)
 app.MapControllers();
 
-// Защищенные маршруты (требуют аутентификации)
-// Применяем middleware аутентификации только к определенным маршрутам
+// Применяем middleware аутентификации только к определенным маршрутам (требуют права)
 app.MapWhen(
     context => context.Request.Path.StartsWithSegments("/api") &&
                !context.Request.Path.StartsWithSegments("/api/login") &&
-               !context.Request.Path.StartsWithSegments("/api/test") &&
                !context.Request.Path.StartsWithSegments("/api/mobile"),
     appBuilder =>
     {

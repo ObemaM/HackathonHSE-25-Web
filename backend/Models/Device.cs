@@ -3,9 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HackathonBackend.Models
 {
-    /// <summary>
-    /// Device представляет таблицу devices
-    /// </summary>
+    // Таблица устройств
     [Table("devices")]
     public class Device
     {

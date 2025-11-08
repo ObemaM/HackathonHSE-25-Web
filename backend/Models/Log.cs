@@ -3,9 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HackathonBackend.Models
 {
-    /// <summary>
-    /// Log представляет таблицу logs
-    /// </summary>
+    // Таблица логов
     [Table("logs")]
     public class Log
     {

@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace HackathonBackend.Models.DTOs
 {
-    public class DeviceLog
+    public class DeviceLog // Лог устройства
     {
         [JsonPropertyName("action_code")]
         public string ActionCode { get; set; } = string.Empty;

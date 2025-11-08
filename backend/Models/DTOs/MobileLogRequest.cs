@@ -3,10 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace HackathonBackend.Models.DTOs
 {
-    /// <summary>
-    /// MobileLogRequest представляет запрос на добавление лога с мобильного устройства
-    /// </summary>
-    public class MobileLogRequest
+    public class MobileLogRequest // Запрос на добавление лога с мобильного устройства
     {
         [JsonPropertyName("region_code")]
         [Required(ErrorMessage = "Код региона обязателен")]
@@ -43,15 +40,5 @@ namespace HackathonBackend.Models.DTOs
 
         [JsonPropertyName("datetime")]
         public DateTime? Datetime { get; set; }
-    }
-
-    /// <summary>
-    /// MobileLogBatchRequest представляет запрос на добавление пакета логов с мобильного устройства
-    /// </summary>
-    public class MobileLogBatchRequest
-    {
-        [JsonPropertyName("logs")]
-        [Required]
-        public List<MobileLogRequest> Logs { get; set; } = new List<MobileLogRequest>();
     }
 }
