@@ -65,11 +65,6 @@ namespace HackathonBackend.Controllers
                 {
                     device.RegionCode = request.RegionCode;
                     device.SmpCode = request.SmpCode;
-
-                    var logsToUpdate = await tocontext.Logs // Обновляем логи устройства, если почистили кэш на устройстве
-                        .Where(l => l.DeviceCode == device.DeviceCode)
-                        .ToListAsync();
-
                     await tocontext.SaveChangesAsync();
                 }
 
@@ -174,8 +169,9 @@ namespace HackathonBackend.Controllers
                             tocontext.SMPs.Add(smp);
                         }
 
-                        // Проверяем устройство
+                        // Проверяем/создаем/обновляем устройство
                         var device = await tocontext.Devices.FirstOrDefaultAsync(d => d.DeviceCode == deviceCode);
+                        if (device == null)
                         {
                             device = new Device
                             {
@@ -185,6 +181,11 @@ namespace HackathonBackend.Controllers
                                 CreatedAt = DateTime.UtcNow
                             };
                             tocontext.Devices.Add(device);
+                        }
+                        else if (device.RegionCode != regionCode || device.SmpCode != smpCode)
+                        {
+                            device.RegionCode = regionCode;
+                            device.SmpCode = smpCode;
                         }
 
                         // Проверяем действие
