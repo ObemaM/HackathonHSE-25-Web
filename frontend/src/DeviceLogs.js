@@ -167,7 +167,6 @@ export default function DeviceLogs() {
                                 textAlign: 'center',
                                 verticalAlign: 'middle',
                                 borderBottom: '1px solid #e9ecef'
-                                
                             }}>
                                 {fields.map(field => (
                                 <th 
@@ -176,7 +175,8 @@ export default function DeviceLogs() {
                                     textAlign: 'center',
                                     verticalAlign: 'middle',
                                     padding: '0.5rem',
-                                    borderRight: '1px solid #e9ecef'
+                                    borderRight: '1px solid #e9ecef',
+                                    borderTopLeftRadius: '12px'
                                     }}
                                 >
                                     <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -256,7 +256,10 @@ export default function DeviceLogs() {
                                 ))}
 
                                 {/* Пустая ячейка под "Дата действия" */}
-                                <th style={{ textAlign: 'center', padding: '0.5rem' }}></th>
+                                <th style={{ 
+                                    textAlign: 'center',
+                                    padding: '0.5rem',
+                                    borderTopRightRadius: '12px'}}></th>
                             </tr>
 
                             {/*Строка заголовков */}
@@ -268,20 +271,14 @@ export default function DeviceLogs() {
                                 <th key={f.key} style={{ 
                                     textAlign: 'center',
                                     verticalAlign: 'middle',
-                                    padding: '0.75rem 1rem',
-                                    borderRight: '1px solid #dee2e6',
-                                    fontWeight: '600',
-                                    color: '#495057'
+                                    borderRight: '1px solid #dee2e6'
                                 }}>
                                     {f.label}
                                 </th>
                                 ))}
                                 <th style={{ 
                                 textAlign: 'center', 
-                                verticalAlign: 'middle',
-                                padding: '0.75rem 1rem',
-                                fontWeight: '600',
-                                color: '#495057'
+                                verticalAlign: 'middle'
                                 }}>Дата действия</th>
                             </tr>
 

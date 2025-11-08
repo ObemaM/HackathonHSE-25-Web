@@ -175,7 +175,8 @@ export default function DevicesList() {
                                         borderRight: '1px solid #e9ecef',
                                         padding: '0.5rem',
                                         textAlign: 'center',
-                                        verticalAlign: 'middle'
+                                        verticalAlign: 'middle',
+                                        borderTopLeftRadius: '12px'
                                     }}
                                 >
                                     <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -257,7 +258,7 @@ export default function DevicesList() {
 
                             {/* Пустые ячейки под "Дата действия" и "Действия" */}
                             <th style={{ textAlign: 'center', padding: '0.5rem', borderRight: '1px solid #e9ecef' }}></th>
-                            <th style={{ textAlign: 'center', padding: '0.5rem' }}></th>
+                            <th style={{ textAlign: 'center', padding: '0.5rem', borderTopRightRadius: '12px'}}></th>
                         </tr>
 
                             <tr style={{ 
