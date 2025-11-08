@@ -1,0 +1,48 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hackathon_backend
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=HackathonHSE-25
+      - DB_USER=postgres
+      - DB_PASSWORD=paralledp
+      - ASPNETCORE_URLS=http://+:8080
+    networks:
+      - app-network
+    expose:
+      - "8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hackathon_frontend
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    expose:
+      - "80"
+
+  nginx:
+    image: nginx:alpine
+    container_name: hackathon_nginx
+    ports:
+      - "10880:10880"
+      - "10830:10830"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true
+    name: hackathonhse-25-web_app-network
