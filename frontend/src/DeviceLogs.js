@@ -18,6 +18,7 @@ export default function DeviceLogs() {
     const [error, setError] = useState(null); // Ошибка во время работы программы
     const [filters, setFilters] = useState({}); // Выбранные значения фильтров
     const [uniqueValues, setUniqueValues] = useState({}); // Все уникальные значения для фильтров
+    const [scopedUniqueValues, setScopedUniqueValues] = useState({}); // Уникальные значения для открытого фильтра
     const [openFilter, setOpenFilter] = useState(null); // Какая выпадающая панель открыта
     const [searchTerms, setSearchTerms] = useState({}); // Поисковые запросы для фильтров
     const [offset, setOffset] = useState(0); // Смещение для пагинации
@@ -48,6 +49,23 @@ export default function DeviceLogs() {
         };
         loadUniqueValues();
     }, [deviceCode, filters]); // Перезагружаем при изменении deviceCode или фильтров
+
+    // При открытии конкретного фильтра загружаем уникальные значения, исключая это поле из фильтров
+    useEffect(() => {
+        const loadScoped = async () => {
+            if (!openFilter) return;
+            try {
+                const filtersWithoutField = { ...filters };
+                delete filtersWithoutField[openFilter];
+                const scoped = await fetchUniqueValuesForDevice(deviceCode, filtersWithoutField);
+                setScopedUniqueValues(scoped);
+            } catch (err) {
+                console.error('Ошибка загрузки уникальных значений (scoped):', err);
+            }
+        };
+        loadScoped();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [openFilter, deviceCode, JSON.stringify(filters)]);
 
     // Загрузка логов при монтировании компонента и при изменении фильтров
     useEffect(() => {
@@ -124,7 +142,8 @@ export default function DeviceLogs() {
 
     // Получение уникальных значений для каждого поля из данных с сервера
     const getUniqueValues = (key) => {
-        return uniqueValues[key] || []; // Возвращаем значения с сервера
+        // Если открыт этот фильтр и есть scoped значения — используем их, иначе общие
+        return (openFilter === key ? (scopedUniqueValues[key] || []) : (uniqueValues[key] || []));
     };
 
     // Фильтрация значений по поисковому запросу
@@ -242,39 +261,43 @@ export default function DeviceLogs() {
                                         }}
                                         onClick={e => e.stopPropagation()}
                                         >
-                                        <div style={{ padding: '6px', borderBottom: '1px solid #eee' }}>
+                                        <div style={{ padding: '6px', borderBottom: '1px solid #eee' }} onClick={e => e.stopPropagation()}>
                                             <button
-                                            onClick={() => clearFilter(field.key)}
-                                            style={{ fontSize: '12px', color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer' }}
+                                                onClick={() => clearFilter(field.key)}
+                                                style={{ fontSize: '12px', color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer' }}
                                             >
-                                            Очистить
+                                                Очистить
                                             </button>
                                         </div>
-                                        <div style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
+                                        <div style={{ padding: '8px', borderBottom: '1px solid #eee' }} onClick={e => e.stopPropagation()}>
                                             <input
-                                            type="text"
-                                            placeholder={`Поиск...`}
-                                            value={searchTerms[field.key] || ''}
-                                            onChange={(e) => handleSearchChange(field.key, e.target.value)}
-                                            style={{
-                                                width: '100%',
-                                                padding: '4px 8px',
-                                                borderRadius: '4px',
-                                                border: '1px solid #ddd',
-                                                fontSize: '13px',
-                                                boxSizing: 'border-box'
-                                            }}
+                                                type="text"
+                                                placeholder={`Поиск...`}
+                                                value={searchTerms[field.key] || ''}
+                                                onChange={(e) => handleSearchChange(field.key, e.target.value)}
+                                                onClick={e => e.stopPropagation()}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '4px',
+                                                    border: '1px solid #ddd',
+                                                    fontSize: '13px',
+                                                    boxSizing: 'border-box'
+                                                }}
                                             />
                                         </div>
                                         {getFilteredValues(field.key).map(value => (
-                                            <label key={value} style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', cursor: 'pointer' }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={filters[field.key]?.includes(value) || false}
-                                                onChange={() => toggleFilter(field.key, value)}
-                                            />
-                                            <span style={{ marginLeft: '8px', fontSize: '0.9rem' }}>{value || '—'}</span>
-                                            </label>
+                                            <div key={value} style={{ padding: '6px 10px' }} onClick={e => e.stopPropagation()}>
+                                                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={filters[field.key]?.includes(value) || false}
+                                                        onChange={() => toggleFilter(field.key, value)}
+                                                        style={{ marginRight: '8px' }}
+                                                    />
+                                                    <span>{value || '—'}</span>
+                                                </label>
+                                            </div>
                                         ))}
                                         </div>
                                     )}

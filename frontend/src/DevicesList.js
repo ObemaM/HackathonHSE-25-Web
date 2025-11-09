@@ -16,6 +16,7 @@ export default function DevicesList() {
     const [error, setError] = useState(null); // Ошибка во время работы программы
     const [filters, setFilters] = useState({}); // Выбранные значения фильтров: { smp_code: ['SMP-01'], region_code: ['77'] }
     const [uniqueValues, setUniqueValues] = useState({}); // Уникальные значения для фильтров
+    const [scopedUniqueValues, setScopedUniqueValues] = useState({}); // Уникальные значения для открытого фильтра
     const [openFilter, setOpenFilter] = useState(null); // Какая выпадающая панель фильтра сейчас открыта (null - ни одна)
     const [searchTerms, setSearchTerms] = useState({}); // Поисковые запросы для фильтров
     const [offset, setOffset] = useState(0); // Смещение для пагинации - сколько элементов уже загружено
@@ -37,6 +38,23 @@ export default function DevicesList() {
         };
         loadUniqueValues();
     }, [filters]); // Перезагружаем при изменении фильтров
+
+    // При открытии конкретного фильтра загружаем уникальные значения, исключая это поле из фильтров
+    useEffect(() => {
+        const loadScoped = async () => {
+            if (!openFilter) return;
+            try {
+                const filtersWithoutField = { ...filters };
+                delete filtersWithoutField[openFilter];
+                const scoped = await fetchUniqueValues(filtersWithoutField);
+                setScopedUniqueValues(scoped);
+            } catch (err) {
+                console.error('Ошибка загрузки уникальных значений (scoped):', err);
+            }
+        };
+        loadScoped();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [openFilter, JSON.stringify(filters)]);
 
     // Выполняется при загрузке компонента и при любом изменении фильтров для загрузки данных таблицы
     useEffect(() => {
@@ -128,7 +146,8 @@ export default function DevicesList() {
 
     // Получение уникальных значений для каждого поля из данных с сервера
     const getUniqueValues = (key) => {
-        return uniqueValues[key] || []; // Возвращаем значения с сервера
+        // Если открыт этот фильтр и есть scoped значения — используем их, иначе общие
+        return (openFilter === key ? (scopedUniqueValues[key] || []) : (uniqueValues[key] || []));
     };
 
     // Фильтрация значений по поисковому запросу
@@ -231,7 +250,7 @@ export default function DevicesList() {
                                                 }}
                                                 onClick={e => e.stopPropagation()}
                                             >
-                                                <div style={{ padding: '6px', borderBottom: '1px solid #eee' }}>
+                                                <div style={{ padding: '6px', borderBottom: '1px solid #eee' }} onClick={e => e.stopPropagation()}>
                                                     <button
                                                         onClick={() => clearFilter(field.key)}
                                                         style={{ fontSize: '12px', color: '#1976d2', background: 'none', border: 'none', cursor: 'pointer' }}
@@ -239,12 +258,13 @@ export default function DevicesList() {
                                                         Очистить
                                                     </button>
                                                 </div>
-                                                <div style={{ padding: '8px', borderBottom: '1px solid #eee' }}>
+                                                <div style={{ padding: '8px', borderBottom: '1px solid #eee' }} onClick={e => e.stopPropagation()}>
                                                     <input
                                                         type="text"
                                                         placeholder={`Поиск...`}
                                                         value={searchTerms[field.key] || ''}
                                                         onChange={(e) => handleSearchChange(field.key, e.target.value)}
+                                                        onClick={e => e.stopPropagation()}
                                                         style={{
                                                             width: '100%',
                                                             padding: '4px 8px',
@@ -256,14 +276,17 @@ export default function DevicesList() {
                                                     />
                                                 </div>
                                                 {getFilteredValues(field.key).map(value => (
-                                                    <label key={value} style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', cursor: 'pointer' }}>
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={filters[field.key]?.includes(value) || false}
-                                                            onChange={() => toggleFilter(field.key, value)}
-                                                        />
-                                                        <span style={{ marginLeft: '8px', fontSize: '0.9rem' }}>{value || '—'}</span>
-                                                    </label>
+                                                    <div key={value} style={{ padding: '6px 10px' }} onClick={e => e.stopPropagation()}>
+                                                        <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={filters[field.key]?.includes(value) || false}
+                                                                onChange={() => toggleFilter(field.key, value)}
+                                                                style={{ marginRight: '8px' }}
+                                                            />
+                                                            <span style={{ fontSize: '0.9rem' }}>{value || '—'}</span>
+                                                        </label>
+                                                    </div>
                                                 ))}
                                             </div>
                                         )}
